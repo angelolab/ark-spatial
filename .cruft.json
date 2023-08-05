@@ -1,0 +1,23 @@
+{
+  "template": "https://github.com/scverse/cookiecutter-scverse",
+  "commit": "098cfcc1e0086e5725453a371d7077a63d96a958",
+  "checkout": null,
+  "context": {
+    "cookiecutter": {
+      "project_name": "ark",
+      "package_name": "ark",
+      "project_description": "A very interesting piece of code",
+      "author_full_name": "Sricharan Reddy Varra",
+      "author_email": "srivarra@stanford.edu",
+      "github_user": "srivarra",
+      "project_repo": "ark",
+      "license": "MIT License",
+      "_copy_without_render": [
+        ".github/workflows/**.yaml",
+        "docs/_templates/autosummary/**.rst"
+      ],
+      "_template": "https://github.com/scverse/cookiecutter-scverse"
+    }
+  },
+  "directory": null
+}
