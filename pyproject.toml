@@ -20,15 +20,27 @@ urls.Source = "ark"
 urls.Home-page = "ark"
 dependencies = [
     "anndata",
+    "torch",
+    "hvplot",
+    "dask",
+    "dask-image",
+    "flox",
+    "spatialdata",
+    "torch",
+    "spatialdata-plot",
     # for debug logging (referenced from the issue template)
     "session-info"
 ]
 
 [project.optional-dependencies]
+cuda = ["cupy", "cucim"]
 dev = [
     # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2"
+]
+ipy = [
+    "jupyterlab"
 ]
 doc = [
     "docutils>=0.8,!=0.18.*,!=0.19.*",
@@ -48,6 +60,9 @@ test = [
     "pytest-cov",
 ]
 
+[tool.hatch]
+metadata.allow-direct-references = true
+
 [tool.coverage.run]
 source = ["ark"]
 omit = [
@@ -62,11 +77,14 @@ addopts = [
 ]
 
 [tool.black]
-line-length = 120
+line-length = 100
 
 [tool.ruff]
-src = ["src"]
-line-length = 120
+include = ["*.py", "*.pyi", "**/pyproject.toml", "*.ipynb"]
+src = ["src", "tests", "notebooks"]
+
+line-length = 100
+fixable = ["ALL"]
 select = [
     "F",  # Errors detected by Pyflakes
     "E",  # Error detected by Pycodestyle
@@ -78,7 +96,7 @@ select = [
     "C4",  # flake8-comprehensions
     "BLE",  # flake8-blind-except
     "UP",  # pyupgrade
-    "RUF100",  # Report unused noqa directives
+    "RUF100",  # Report unused noqa directives,
 ]
 ignore = [
     # line too long -> we accept long comment lines; black gets rid of long code lines
@@ -107,6 +125,10 @@ ignore = [
     # We want docstrings to start immediately after the opening triple quote
     "D213",
 ]
+
+[tool.ruff.isort]
+known-first-party = ["ark"]
+
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
