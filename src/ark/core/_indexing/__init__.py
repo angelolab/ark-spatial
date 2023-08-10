@@ -1,3 +1,3 @@
-from .indexing import IndexingAccessor
+from . import indexing
 
-__all__ = ["IndexingAccessor"]
+__all__ = ["indexing"]

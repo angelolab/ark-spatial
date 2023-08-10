@@ -26,6 +26,9 @@ dependencies = [
     "dask-image",
     "flox",
     "spatialdata",
+    "uvicorn[standard]",
+    "fastapi",
+    "httpx",
     "torch",
     "spatialdata-plot",
     # for debug logging (referenced from the issue template)

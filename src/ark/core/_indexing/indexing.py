@@ -2,14 +2,10 @@ from collections import OrderedDict
 from typing import Union
 
 import spatialdata as sd
-from anndata import AnnData
-from dask.dataframe.core import DataFrame as DaskDataFrame
-from geopandas import GeoDataFrame
-from multiscale_spatial_image.multiscale_spatial_image import MultiscaleSpatialImage
-from spatial_image import SpatialImage
 from spatialdata.models import X, Y
 
 from ark.core._accessors import (
+    SpatialDataAccessor,
     register_spatial_data_accessor,
 )
 
@@ -20,8 +16,8 @@ from .utils import (
 )
 
 
-@register_spatial_data_accessor("idx")
-class IndexingAccessor:
+@register_spatial_data_accessor("sel")
+class IndexingAccessor(SpatialDataAccessor):
     """
     Preprocessing functions for SpatialData objects.
 
@@ -30,40 +26,6 @@ class IndexingAccessor:
     sdata :
         A spatial data object.
     """
-
-    @property
-    def sdata(self) -> sd.SpatialData:
-        """The `SpatialData` object to provide preprocessing functions for."""
-        return self._sdata
-
-    @sdata.setter
-    def sdata(self, sdata: sd.SpatialData) -> None:
-        self._sdata = sdata
-
-    def __init__(self, sdata: sd.SpatialData) -> None:
-        self._sdata = sdata
-
-    def _copy(
-        self,
-        images: Union[None, dict[str, Union[SpatialImage, MultiscaleSpatialImage]]] = None,
-        labels: Union[None, dict[str, Union[SpatialImage, MultiscaleSpatialImage]]] = None,
-        points: Union[None, dict[str, DaskDataFrame]] = None,
-        shapes: Union[None, dict[str, GeoDataFrame]] = None,
-        table: Union[None, AnnData] = None,
-    ) -> sd.SpatialData:
-        """Copy the references from the original to the new SpatialData object."""
-        sdata = sd.SpatialData(
-            images=self._sdata.images if images is None else images,
-            labels=self._sdata.labels if labels is None else labels,
-            points=self._sdata.points if points is None else points,
-            shapes=self._sdata.shapes if shapes is None else shapes,
-            table=self._sdata.table if table is None else table,
-        )
-        sdata.plotting_tree = (
-            self._sdata.plotting_tree if hasattr(self._sdata, "plotting_tree") else OrderedDict()
-        )
-
-        return sdata
 
     def _verify_plotting_tree_exists(self) -> None:
         if not hasattr(self._sdata, "plotting_tree"):
