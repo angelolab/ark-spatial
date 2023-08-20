@@ -20,29 +20,36 @@ urls.Source = "ark"
 urls.Home-page = "ark"
 dependencies = [
     "anndata",
+    "anyio",
+    "ark[gpgpu_jax]",
+    "mpire",
     "torch",
     "hvplot",
     "dask",
     "dask-image",
     "flox",
     "spatialdata",
-    "uvicorn[standard]",
-    "fastapi",
+    "datasets",
+    "xbatcher",
     "httpx",
-    "torch",
     "spatialdata-plot",
     # for debug logging (referenced from the issue template)
     "session-info"
 ]
 
 [project.optional-dependencies]
+gpgpu_jax = [
+    "jax",
+    "jax-metal ; platform_system == 'Darwin'",
+    "jaxlib == 0.4.11 ; platform_system == 'Darwin'"
+]
 cuda = ["cupy", "cucim"]
 dev = [
     # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2"
 ]
-ipy = [
+nb = [
     "jupyterlab"
 ]
 doc = [

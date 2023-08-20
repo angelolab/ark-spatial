@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Union
+from typing import Any, Union
 
 import spatialdata as sd
 from spatialdata.models import X, Y
@@ -31,7 +31,10 @@ class IndexingAccessor(SpatialDataAccessor):
         if not hasattr(self._sdata, "plotting_tree"):
             self._sdata.plotting_tree = OrderedDict()
 
-    def get_elements(self, elements: Union[str, list[str]]) -> sd.SpatialData:
+    def __call__(self, *args: Any, **kwds: Any) -> sd.SpatialData:
+        return self._get_elements(*args, **kwds)
+
+    def _get_elements(self, elements: Union[str, list[str]]) -> sd.SpatialData:
         """
         Get a subset of the spatial data object by specifying elements to keep.
 
