@@ -33,6 +33,8 @@ dependencies = [
     "xbatcher",
     "httpx",
     "spatialdata-plot",
+    "dask-regionprops",
+    "ray[serve]",
     # for debug logging (referenced from the issue template)
     "session-info"
 ]

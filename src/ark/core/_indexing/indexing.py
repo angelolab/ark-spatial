@@ -1,6 +1,8 @@
 from collections import OrderedDict
+from collections.abc import Generator
 from typing import Any
 
+import natsort as ns
 import spatialdata as sd
 from spatialdata.models import X, Y
 
@@ -309,3 +311,18 @@ class IndexingAccessor(SpatialDataAccessor):
         }
 
         return sdata
+
+
+@register_spatial_data_accessor("iter_images")
+class IteratorImageAccessor(SpatialDataAccessor):
+    def __call__(self, *args, **kwargs) -> Generator[sd.SpatialData]:
+        return iter(ns.natsorted(self.sdata.images.values(), key=lambda x: x.name))
+
+
+@register_spatial_data_accessor("iter_fovs")
+class IteratorFOVAccessor(SpatialDataAccessor):
+    def __call__(self, *args, **kwargs) -> Generator[sd.SpatialData]:
+        return iter(
+            self.sdata.sel(elements=[si.name, f"{si.name}_nuclear", f"{si.name}_whole_cell"])
+            for si in self.sdata.iter_images()
+        )
