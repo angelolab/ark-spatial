@@ -1,5 +1,5 @@
 from collections import OrderedDict
-from typing import Any, Union
+from typing import Any
 
 import spatialdata as sd
 from spatialdata.models import X, Y
@@ -34,7 +34,7 @@ class IndexingAccessor(SpatialDataAccessor):
     def __call__(self, *args: Any, **kwds: Any) -> sd.SpatialData:
         return self._get_elements(*args, **kwds)
 
-    def _get_elements(self, elements: Union[str, list[str]]) -> sd.SpatialData:
+    def _get_elements(self, elements: str | list[str]) -> sd.SpatialData:
         """
         Get a subset of the spatial data object by specifying elements to keep.
 
@@ -82,7 +82,7 @@ class IndexingAccessor(SpatialDataAccessor):
         not include label keys, the returned spatialdata object will have no
         table.
         """
-        if not isinstance(elements, (str, list)):
+        if not isinstance(elements, str | list):
             raise TypeError("Parameter 'elements' must be a string or a list of strings.")
 
         if not all(isinstance(e, str) for e in elements):
@@ -241,8 +241,8 @@ class IndexingAccessor(SpatialDataAccessor):
 
     def get_bb(
         self,
-        x: Union[slice, list[int], tuple[int, int]] = (0, 0),
-        y: Union[slice, list[int], tuple[int, int]] = (0, 0),
+        x: slice | list[int] | tuple[int, int] = (0, 0),
+        y: slice | list[int] | tuple[int, int] = (0, 0),
     ) -> sd.SpatialData:
         """Get bounding box around a point.
 
@@ -258,10 +258,10 @@ class IndexingAccessor(SpatialDataAccessor):
         sd.SpatialData
             subsetted SpatialData object
         """
-        if not isinstance(x, (slice, list, tuple)):
+        if not isinstance(x, slice | list | tuple):
             raise TypeError("Parameter 'x' must be one of 'slice', 'list', 'tuple'.")
 
-        if isinstance(x, (list, tuple)) and len(x) == 2:
+        if isinstance(x, list | tuple) and len(x) == 2:
             if x[1] <= x[0]:
                 raise ValueError("The current choice of 'x' would result in an empty slice.")
 
@@ -273,10 +273,10 @@ class IndexingAccessor(SpatialDataAccessor):
         else:
             raise ValueError("Parameter 'x' must be of length 2.")
 
-        if not isinstance(y, (slice, list, tuple)):
+        if not isinstance(y, slice | list | tuple):
             raise TypeError("Parameter 'y' must be one of 'slice', 'list', 'tuple'.")
 
-        if isinstance(y, (list, tuple)):
+        if isinstance(y, list | tuple):
             if len(y) != 2:
                 raise ValueError("Parameter 'y' must be of length 2.")
 

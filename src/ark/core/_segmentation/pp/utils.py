@@ -1,11 +1,26 @@
 import pathlib
+import re
 import tempfile
+from dataclasses import dataclass
+from urllib.parse import unquote_plus
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import httpx
+import natsort as ns
 from multiscale_spatial_image.multiscale_spatial_image import MultiscaleSpatialImage
-from skimage.io import imsave
+from skimage.io import imread, imsave
 from spatial_image import SpatialImage
+from spatialdata.models import (
+    Labels2DModel,
+    X,
+    Y,
+)
+
+
+@dataclass
+class SegmentationImageContainer:
+    fov_name: str
+    segmentation_label_masks: dict[str, Labels2DModel]
 
 
 async def _create_deepcell_input(
@@ -25,17 +40,38 @@ async def _create_deepcell_input(
         temp_extracted_seg_dir.mkdir()
         extract_zip(output_zip_path, temp_extracted_seg_dir)
 
-    return 0
+        seg_label_mask: SegmentationImageContainer = _deepcell_seg_to_spatial_labels(
+            fov_name=fov.name, extracted_seg_dir=temp_extracted_seg_dir
+        )
+
+    return seg_label_mask
 
 
 def extract_zip(zip_path: pathlib.Path, save_dir: pathlib.Path):
     with ZipFile(zip_path, "r") as zipObj:
-        # for name in zipObj.namelist():
-        print(zipObj.filelist)
         zipObj.extractall(save_dir)
 
 
-def _save_image(fov_chan: SpatialImage, save_dir: pathlib.Path, plugin_args):
+# TODO: load in each segmentation mask at once, then store it as a Labels2DModel
+def _deepcell_seg_to_spatial_labels(fov_name: str, extracted_seg_dir: pathlib.Path):
+    seg_mask_names: list[pathlib.Path] = ns.natsorted(extracted_seg_dir.glob("*.tif"))
+    renamed_seg_masks = {}
+    for smn in seg_mask_names:
+        match int(re.search(r"feature_(\d)", smn.stem).group(1)):
+            case 0:
+                renamed_seg_masks["whole_cell"] = Labels2DModel.parse(
+                    data=imread(fname=smn).squeeze(), dims=(Y, X)
+                )
+            case 1:
+                renamed_seg_masks["nuclear"] = Labels2DModel.parse(
+                    data=imread(fname=smn).squeeze(), dims=(Y, X)
+                )
+    return SegmentationImageContainer(fov_name, renamed_seg_masks)
+
+
+def _save_image(
+    fov_chan: SpatialImage | MultiscaleSpatialImage, save_dir: pathlib.Path, plugin_args
+):
     imsave(
         save_dir / f"{fov_chan.name}.tiff",
         fov_chan,
@@ -45,7 +81,7 @@ def _save_image(fov_chan: SpatialImage, save_dir: pathlib.Path, plugin_args):
     return fov_chan.name
 
 
-def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
+def spaital_data_to_fov(fov: SpatialImage | MultiscaleSpatialImage, save_dir: pathlib.Path):
     plugin_args: dict[str, str | dict] = {
         "compression": "zlib",
         "compressionargs": {"level": 7},
@@ -53,7 +89,7 @@ def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
     _save_image(fov, save_dir, plugin_args)
 
 
-def zip_input_files(fov: SpatialImage, fov_temp_dir: pathlib.Path):
+def zip_input_files(fov: SpatialImage | MultiscaleSpatialImage, fov_temp_dir: pathlib.Path):
     # write all files to the zip file
     zip_path = fov_temp_dir.parent / f"{fov_temp_dir.name}.zip"
 
@@ -77,7 +113,7 @@ async def upload_to_deepcell(zipped_fov: pathlib.Path, dc_session: httpx.AsyncCl
 
     upload_response = await dc_session.post(
         url=upload_url,
-        files={"file": open(zipped_fov, "rb")},
+        files={"file": (zipped_fov.name, open(zipped_fov, "rb"), "application/zip")},
         timeout=30,
     )
     upload_response.raise_for_status()
@@ -109,7 +145,7 @@ async def upload_to_deepcell(zipped_fov: pathlib.Path, dc_session: httpx.AsyncCl
 
     # Check redis every 3 seconds
     while (total_time := 0) < 300:
-        redis_response = await dc_session.post(url=redis_url, json=redis_payload, timeout=3)
+        redis_response = await dc_session.post(url=redis_url, json=redis_payload, timeout=300)
         redis_response.raise_for_status()
         redis_response_json = redis_response.json()
 
@@ -119,6 +155,9 @@ async def upload_to_deepcell(zipped_fov: pathlib.Path, dc_session: httpx.AsyncCl
         if status == "done":
             break
         total_time += 3
+
+    if len(redis_response_json["value"][4]) > 0:
+        print(f"Encountered Failure(s): {unquote_plus(redis_response_json['value'][4])}")
 
     deepcell_output = await dc_session.get(redis_response_json["value"][2], follow_redirects=True)
     deepcell_output.raise_for_status()
