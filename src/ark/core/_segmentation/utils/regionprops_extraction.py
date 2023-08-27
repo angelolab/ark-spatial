@@ -1,5 +1,5 @@
 """
-`regionprops_extraction.py`
+`regionprops_extraction.py`.
 
 From https://github.com/jrussell25/dask-regionprops/blob/main/dask_regionprops/regionprops.py,
 Modified to accept other properties.
@@ -16,8 +16,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from dask import delayed
-from jax import jit, lax, vmap
-from jax import numpy as jnp
 from numpy.typing import ArrayLike
 from skimage.measure import label, moments, regionprops_table
 
@@ -67,7 +65,7 @@ def regionprops_df(
     other_cols=None,
 ) -> pd.DataFrame:
     """
-    f
+    Computes the regionprops of each labelled region in a segmentaiton image.
 
     Lightly wrap skimage.measure.regionprops_table to return a DataFrame.
     Also allow for the addition of extra columns, used in reginprops to track
@@ -120,7 +118,7 @@ def regionprops(
     core_dims: tuple[int | str, ...] | None = None,
 ) -> dd.DataFrame:
     """
-    f
+    f.
 
     Loop over the frames of ds and compute the regionprops for
     each labelled image in each frame.
@@ -282,50 +280,115 @@ def rp_table_wrapper(func):
     return wrapper
 
 
-def rp_table_wrapper_vmap(func):
-    def wrapper(region_properties: dict[str, ArrayLike]):
-        props: list[str] = inspect.getargs(func._fun.__code__).args
-        kwargs = {k: region_properties[k] for k in props if k in region_properties}
+@rp_table_wrapper
+def major_minor_axis_ratio(
+    axis_minor_length: ArrayLike[float], axis_major_length: ArrayLike[float]
+) -> ArrayLike[float]:
+    """_summary_.
 
-        return vmap(func)(**kwargs)
+    Parameters
+    ----------
+    axis_minor_length : ArrayLike[float]
+        _description_
+    axis_major_length : ArrayLike[float]
+        _description_
 
-    return wrapper
-
-
-@rp_table_wrapper_vmap
-@jit
-def major_minor_axis_ratio(axis_minor_length: float, axis_major_length: float) -> float:
-    branches = [lambda: jnp.nan, lambda: axis_major_length / axis_minor_length]
-    conditions = jnp.array([axis_minor_length == 0, axis_minor_length != 0])
-    return lax.switch(jnp.argmax(conditions), branches)
-
-
-@rp_table_wrapper_vmap
-@jit
-def perim_square_over_area(perimeter: float, area: float) -> float:
-    return perimeter**2 / area
-
-
-@rp_table_wrapper_vmap
-@jit
-def major_axis_equiv_diam_ratio(axis_major_length: float, equivalent_diameter: float) -> float:
-    branches = [lambda: jnp.nan, lambda: axis_major_length / equivalent_diameter]
-    conditions = jnp.array([equivalent_diameter == 0, equivalent_diameter != 0])
-    return lax.switch(jnp.argmax(conditions), branches)
-
-
-@rp_table_wrapper_vmap
-@jit
-def convex_hull_equiv_diam_ratio(area_convex: float, equivalent_diameter: float) -> float:
-    branches = [lambda: jnp.nan, lambda: area_convex / equivalent_diameter]
-    conditions = jnp.array([equivalent_diameter == 0, equivalent_diameter != 0])
-    return lax.switch(jnp.argmax(conditions), branches)
+    Returns
+    -------
+    ArrayLike[float]
+        _description_
+    """
+    mmar: ArrayLike[np.float64] = np.empty_like(axis_major_length, dtype=np.float64)
+    for i, (a, b) in enumerate(zip(axis_minor_length, axis_major_length, strict=True)):
+        if b == 0:
+            mmar[i] = np.nan
+        else:
+            mmar[i] = a / b
+    return mmar
 
 
 @rp_table_wrapper
-def centroid_diff(image: list[ArrayLike], image_convex: list[ArrayLike], area: ArrayLike) -> float:
-    centroid_dist = []
-    for im, im_c, a in zip(image, image_convex, area, strict=True):
+def perim_square_over_area(perimeter: ArrayLike[float], area: ArrayLike[float]) -> ArrayLike[float]:
+    """_summary_.
+
+    Parameters
+    ----------
+    perimeter : ArrayLike[float]
+        _description_
+    area : ArrayLike[float]
+        _description_
+
+    Returns
+    -------
+    ArrayLike[float]
+        _description_
+    """
+    psoa: ArrayLike[np.float64] = np.empty_like(perimeter, dtype=np.float64)
+    for i, (p, a) in enumerate(zip(perimeter, area, strict=True)):
+        psoa[i] = p**2 / a
+    return psoa
+
+
+@rp_table_wrapper
+def major_axis_equiv_diam_ratio(
+    axis_major_length: ArrayLike[float], equivalent_diameter: ArrayLike[float]
+) -> ArrayLike[float]:
+    """_summary_.
+
+    Parameters
+    ----------
+    axis_major_length : ArrayLike[float]
+        _description_
+    equivalent_diameter : ArrayLike[float]
+        _description_
+
+    Returns
+    -------
+    ArrayLike[float]
+        _description_
+    """
+    aml: ArrayLike[np.float64] = np.empty_like(axis_major_length, dtype=np.float64)
+    for i, (a, e) in enumerate(zip(axis_major_length, equivalent_diameter, strict=True)):
+        if e == 0:
+            aml[i] = np.nan
+        else:
+            aml[i] = a / e
+    return aml
+
+
+@rp_table_wrapper
+def convex_hull_equiv_diam_ratio(
+    area_convex: ArrayLike[float], equivalent_diameter: ArrayLike[float]
+) -> ArrayLike[float]:
+    """_summary_.
+
+    Parameters
+    ----------
+    area_convex : ArrayLike[float]
+        _description_
+    equivalent_diameter : ArrayLike[float]
+        _description_
+
+    Returns
+    -------
+    ArrayLike[float]
+        _description_
+    """
+    chedr: ArrayLike[np.float64] = np.empty_like(area_convex, dtype=np.float64)
+    for i, (a, e) in enumerate(zip(area_convex, equivalent_diameter, strict=True)):
+        if e == 0:
+            chedr[i] = np.nan
+        else:
+            chedr[i] = a / e
+    return chedr
+
+
+@rp_table_wrapper
+def centroid_diff(
+    image: list[ArrayLike], image_convex: list[ArrayLike], area: ArrayLike[float]
+) -> ArrayLike[float]:
+    centroid_dist = np.empty_like(area, dtype=np.float64)
+    for i, (im, im_c, a) in enumerate(zip(image, image_convex, area, strict=True)):
         cell_M = moments(im)
         cell_centroid = np.array([cell_M[1, 0] / cell_M[0, 0], cell_M[0, 1] / cell_M[0, 0]])
 
@@ -334,20 +397,20 @@ def centroid_diff(image: list[ArrayLike], image_convex: list[ArrayLike], area: A
             [convex_M[1, 0] / convex_M[0, 0], convex_M[0, 1] / convex_M[0, 0]]
         )
 
-        centroid_dist.append(np.linalg.norm(cell_centroid - convex_centroid) / np.sqrt(a))
+        centroid_dist[i] = np.linalg.norm(cell_centroid - convex_centroid) / np.sqrt(a)
     return centroid_dist
 
 
 @rp_table_wrapper
-def num_concavities(image: list[ArrayLike], image_convex: list[ArrayLike], **kwargs) -> float:
-    n_concavities = []
-    for im, im_c in zip(image, image_convex, strict=True):
-        diff_img = im_c ^ im
+def num_concavities(
+    image: list[ArrayLike], image_convex: list[ArrayLike], **kwargs
+) -> ArrayLike[float]:
+    n_concavities: ArrayLike[np.float64] = np.zeros_like(image, dtype=np.int64)
+    for i, (im, im_c) in enumerate(zip(image, image_convex, strict=True)):
+        diff_img: ArrayLike = im_c ^ im
 
         if np.sum(diff_img) < 0:
-            n_concavities.append(_diff_img_concavities(diff_img, **kwargs))
-        else:
-            n_concavities.append(0)
+            n_concavities[i] = _diff_img_concavities(diff_img, **kwargs)
     return n_concavities
 
 

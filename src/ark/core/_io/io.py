@@ -16,12 +16,12 @@ from spatialdata.models import (
     Y,
 )
 
-fov_name = NewType("fov_name", str)
+FovName = NewType("FovName", str)
 
 
 @dataclass
 class _fov:
-    name: fov_name
+    name: FovName
     image: SpatialImage
 
 
@@ -51,8 +51,6 @@ def load_cohort(
     with WorkerPool(n_jobs=None, shared_objects=array_type) as pool:
         for fov in pool.imap_unordered(func=convert_fov, iterable_of_args=fovs, progress_bar=True):
             spatial_data.add_image(name=fov.name, image=fov.image)
-
-    # Set a global coordinate system as well
 
     return spatial_data
 

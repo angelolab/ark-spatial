@@ -4,7 +4,6 @@ from typing import Any
 
 import natsort as ns
 import spatialdata as sd
-from spatialdata.models import X, Y
 
 from ark.core._accessors import (
     SpatialDataAccessor,
@@ -14,7 +13,6 @@ from ark.core._accessors import (
 from .utils import (
     _get_coordinate_system_mapping,
     _get_region_key,
-    _verify_plotting_tree,
 )
 
 
@@ -238,77 +236,6 @@ class IndexingAccessor(SpatialDataAccessor):
 
         else:
             del sdata.table
-
-        return sdata
-
-    def get_bb(
-        self,
-        x: slice | list[int] | tuple[int, int] = (0, 0),
-        y: slice | list[int] | tuple[int, int] = (0, 0),
-    ) -> sd.SpatialData:
-        """Get bounding box around a point.
-
-        Parameters
-        ----------
-        x :
-            x range of the bounding box. Stepsize will be ignored if slice
-        y :
-            y range of the bounding box. Stepsize will be ignored if slice
-
-        Returns
-        -------
-        sd.SpatialData
-            subsetted SpatialData object
-        """
-        if not isinstance(x, slice | list | tuple):
-            raise TypeError("Parameter 'x' must be one of 'slice', 'list', 'tuple'.")
-
-        if isinstance(x, list | tuple) and len(x) == 2:
-            if x[1] <= x[0]:
-                raise ValueError("The current choice of 'x' would result in an empty slice.")
-
-            x = slice(x[0], x[1])
-
-        elif isinstance(x, slice):
-            if x.stop <= x.start:
-                raise ValueError("The current choice of 'x' would result in an empty slice.")
-        else:
-            raise ValueError("Parameter 'x' must be of length 2.")
-
-        if not isinstance(y, slice | list | tuple):
-            raise TypeError("Parameter 'y' must be one of 'slice', 'list', 'tuple'.")
-
-        if isinstance(y, list | tuple):
-            if len(y) != 2:
-                raise ValueError("Parameter 'y' must be of length 2.")
-
-            if y[1] <= y[0]:
-                raise ValueError("The current choice of 'y' would result in an empty slice.")
-
-            # y is clean
-            y = slice(y[0], y[1])
-
-        elif isinstance(y, slice) and y.stop <= y.start:
-            raise ValueError("The current choice of 'x' would result in an empty slice.")
-
-        selection = {X: x, Y: y}  # makes use of xarray sel method
-
-        # TODO: error handling if selection is out of bounds
-        cropped_images = {key: img.sel(selection) for key, img in self._sdata.images.items()}
-        cropped_labels = {key: img.sel(selection) for key, img in self._sdata.labels.items()}
-
-        sdata = self._copy(
-            images=cropped_images,
-            labels=cropped_labels,
-        )
-        self._sdata = _verify_plotting_tree(self._sdata)
-
-        # get current number of steps to create a unique key
-        n_steps = len(self._sdata.plotting_tree.keys())
-        sdata.plotting_tree[f"{n_steps+1}_get_bb"] = {
-            X: x,
-            Y: y,
-        }
 
         return sdata
 
