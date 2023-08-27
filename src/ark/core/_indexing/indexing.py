@@ -313,16 +313,43 @@ class IndexingAccessor(SpatialDataAccessor):
         return sdata
 
 
-@register_spatial_data_accessor("iter_images")
-class IteratorImageAccessor(SpatialDataAccessor):
-    def __call__(self, *args, **kwargs) -> Generator[sd.SpatialData]:
-        return iter(ns.natsorted(self.sdata.images.values(), key=lambda x: x.name))
+@register_spatial_data_accessor("ArkIteratorAccessor")
+class ArkIteratorAccessor(SpatialDataAccessor):
+    @property
+    def fovs(self) -> list[str]:
+        fovs: list[str] = ns.natsorted(self.sdata.images.keys())
+        return fovs
+
+    def __len__(self) -> int:
+        return len(self.fovs)
 
 
-@register_spatial_data_accessor("iter_fovs")
-class IteratorFOVAccessor(SpatialDataAccessor):
-    def __call__(self, *args, **kwargs) -> Generator[sd.SpatialData]:
-        return iter(
-            self.sdata.sel(elements=[si.name, f"{si.name}_nuclear", f"{si.name}_whole_cell"])
-            for si in self.sdata.iter_images()
-        )
+@register_spatial_data_accessor("iter")
+class IteratorImageAccessor(ArkIteratorAccessor):
+    def cohort(
+        self, labels: list[str] | str | None = None, ids: bool = True
+    ) -> Generator[sd.SpatialData]:
+        match (labels, ids):
+            case (list(), True):
+                return self.__iter_with_ids__(labels=labels)
+            case (str(), True):
+                return self.__iter_with_ids__(labels=[labels])
+            case (str(), False):
+                return self.__iter_witout_ids__(labels=[labels])
+            case _:
+                return self.__iter_with_ids__(labels=[])
+
+    def fovs_sd(self) -> Generator[sd.SpatialData]:
+        for fov in self.fovs:
+            yield self.sdata.sel(elements=fov)
+
+    def fov_names(self) -> Generator[str]:
+        yield from self.fovs
+
+    def __iter_witout_ids__(self, labels: list[str]) -> Generator[sd.SpatialData]:
+        for fov in self.fovs:
+            yield self.sdata.sel(elements=[fov, *[f"{fov}_{label}" for label in labels]])
+
+    def __iter_with_ids__(self, labels: list[str]) -> Generator[tuple[str, sd.SpatialData]]:
+        for fov in self.fovs:
+            yield (fov, self.sdata.sel(elements=[fov, *[f"{fov}_{label}" for label in labels]]))

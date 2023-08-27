@@ -52,7 +52,6 @@ def extract_zip(zip_path: pathlib.Path, save_dir: pathlib.Path):
         zipObj.extractall(save_dir)
 
 
-# TODO: load in each segmentation mask at once, then store it as a Labels2DModel
 def _deepcell_seg_to_spatial_labels(fov_name: str, extracted_seg_dir: pathlib.Path):
     seg_mask_names: list[pathlib.Path] = ns.natsorted(extracted_seg_dir.glob("*.tif"))
     renamed_seg_masks = {}

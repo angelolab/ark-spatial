@@ -22,6 +22,7 @@ dependencies = [
     "anndata",
     "anyio",
     "ark[gpgpu_jax]",
+    "ipywidgets",
     "mpire",
     "torch",
     "hvplot",
@@ -33,8 +34,8 @@ dependencies = [
     "xbatcher",
     "httpx",
     "spatialdata-plot",
-    "dask-regionprops",
     "ray[serve]",
+    "redis[hiredis]",
     # for debug logging (referenced from the issue template)
     "session-info"
 ]
