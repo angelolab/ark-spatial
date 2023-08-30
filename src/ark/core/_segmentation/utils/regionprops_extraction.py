@@ -281,24 +281,22 @@ def rp_table_wrapper(func):
 
 
 @rp_table_wrapper
-def major_minor_axis_ratio(
-    axis_minor_length: ArrayLike[float], axis_major_length: ArrayLike[float]
-) -> ArrayLike[float]:
+def major_minor_axis_ratio(axis_minor_length: ArrayLike, axis_major_length: ArrayLike) -> ArrayLike:
     """_summary_.
 
     Parameters
     ----------
-    axis_minor_length : ArrayLike[float]
+    axis_minor_length : ArrayLike
         _description_
-    axis_major_length : ArrayLike[float]
+    axis_major_length : ArrayLike
         _description_
 
     Returns
     -------
-    ArrayLike[float]
+    ArrayLike
         _description_
     """
-    mmar: ArrayLike[np.float64] = np.empty_like(axis_major_length, dtype=np.float64)
+    mmar: ArrayLike = np.empty_like(axis_major_length, dtype=np.float64)
     for i, (a, b) in enumerate(zip(axis_minor_length, axis_major_length, strict=True)):
         if b == 0:
             mmar[i] = np.nan
@@ -308,22 +306,22 @@ def major_minor_axis_ratio(
 
 
 @rp_table_wrapper
-def perim_square_over_area(perimeter: ArrayLike[float], area: ArrayLike[float]) -> ArrayLike[float]:
+def perim_square_over_area(perimeter: ArrayLike, area: ArrayLike) -> ArrayLike:
     """_summary_.
 
     Parameters
     ----------
-    perimeter : ArrayLike[float]
+    perimeter : ArrayLike
         _description_
-    area : ArrayLike[float]
+    area : ArrayLike
         _description_
 
     Returns
     -------
-    ArrayLike[float]
+    ArrayLike
         _description_
     """
-    psoa: ArrayLike[np.float64] = np.empty_like(perimeter, dtype=np.float64)
+    psoa: ArrayLike = np.empty_like(perimeter, dtype=np.float64)
     for i, (p, a) in enumerate(zip(perimeter, area, strict=True)):
         psoa[i] = p**2 / a
     return psoa
@@ -331,23 +329,23 @@ def perim_square_over_area(perimeter: ArrayLike[float], area: ArrayLike[float]) 
 
 @rp_table_wrapper
 def major_axis_equiv_diam_ratio(
-    axis_major_length: ArrayLike[float], equivalent_diameter: ArrayLike[float]
-) -> ArrayLike[float]:
+    axis_major_length: ArrayLike, equivalent_diameter: ArrayLike
+) -> ArrayLike:
     """_summary_.
 
     Parameters
     ----------
-    axis_major_length : ArrayLike[float]
+    axis_major_length : ArrayLike
         _description_
-    equivalent_diameter : ArrayLike[float]
+    equivalent_diameter : ArrayLike
         _description_
 
     Returns
     -------
-    ArrayLike[float]
+    ArrayLike
         _description_
     """
-    aml: ArrayLike[np.float64] = np.empty_like(axis_major_length, dtype=np.float64)
+    aml: ArrayLike = np.empty_like(axis_major_length, dtype=np.float64)
     for i, (a, e) in enumerate(zip(axis_major_length, equivalent_diameter, strict=True)):
         if e == 0:
             aml[i] = np.nan
@@ -358,23 +356,23 @@ def major_axis_equiv_diam_ratio(
 
 @rp_table_wrapper
 def convex_hull_equiv_diam_ratio(
-    area_convex: ArrayLike[float], equivalent_diameter: ArrayLike[float]
-) -> ArrayLike[float]:
+    area_convex: ArrayLike, equivalent_diameter: ArrayLike
+) -> ArrayLike:
     """_summary_.
 
     Parameters
     ----------
-    area_convex : ArrayLike[float]
+    area_convex : ArrayLike
         _description_
-    equivalent_diameter : ArrayLike[float]
+    equivalent_diameter : ArrayLike
         _description_
 
     Returns
     -------
-    ArrayLike[float]
+    ArrayLike
         _description_
     """
-    chedr: ArrayLike[np.float64] = np.empty_like(area_convex, dtype=np.float64)
+    chedr: ArrayLike = np.empty_like(area_convex, dtype=np.float64)
     for i, (a, e) in enumerate(zip(area_convex, equivalent_diameter, strict=True)):
         if e == 0:
             chedr[i] = np.nan
@@ -385,8 +383,8 @@ def convex_hull_equiv_diam_ratio(
 
 @rp_table_wrapper
 def centroid_diff(
-    image: list[ArrayLike], image_convex: list[ArrayLike], area: ArrayLike[float]
-) -> ArrayLike[float]:
+    image: list[ArrayLike], image_convex: list[ArrayLike], area: ArrayLike
+) -> ArrayLike:
     centroid_dist = np.empty_like(area, dtype=np.float64)
     for i, (im, im_c, a) in enumerate(zip(image, image_convex, area, strict=True)):
         cell_M = moments(im)
@@ -402,10 +400,8 @@ def centroid_diff(
 
 
 @rp_table_wrapper
-def num_concavities(
-    image: list[ArrayLike], image_convex: list[ArrayLike], **kwargs
-) -> ArrayLike[float]:
-    n_concavities: ArrayLike[np.float64] = np.zeros_like(image, dtype=np.int64)
+def num_concavities(image: list[ArrayLike], image_convex: list[ArrayLike], **kwargs) -> ArrayLike:
+    n_concavities: ArrayLike = np.zeros_like(image, dtype=np.int64)
     for i, (im, im_c) in enumerate(zip(image, image_convex, strict=True)):
         diff_img: ArrayLike = im_c ^ im
 

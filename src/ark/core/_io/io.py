@@ -15,6 +15,7 @@ from spatialdata.models import (
     X,
     Y,
 )
+from spatialdata.transformations import Identity
 
 FovName = NewType("FovName", str)
 
@@ -49,7 +50,13 @@ def load_cohort(
     spatial_data = sd.SpatialData()
     # you have so many cores, why not use them?
     with WorkerPool(n_jobs=None, shared_objects=array_type) as pool:
-        for fov in pool.imap_unordered(func=convert_fov, iterable_of_args=fovs, progress_bar=True):
+        for fov in pool.imap(
+            func=convert_fov,
+            iterable_of_args=fovs,
+            progress_bar=True,
+            progress_bar_style=None,
+            progress_bar_options={"unit": "FOV"},
+        ):
             spatial_data.add_image(name=fov.name, image=fov.image)
 
     return spatial_data
@@ -79,8 +86,8 @@ def convert_fov(shared_objects: str, fov: Path) -> _fov:
         dims=(C, Y, X),
         c_coords=channels,
         transformations={
-            fov.stem: sd.transformations.Identity(),  # Per FOV coordinate system
-            "global": sd.transformations.Identity(),  # Global coordinate system
+            fov.stem: Identity(),  # Per FOV coordinate system
+            "global": Identity(),  # Global coordinate system
         },
     )
 

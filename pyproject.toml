@@ -19,12 +19,6 @@ urls.Home-page = "ark"
 dependencies = ["ark[core]"]
 
 [project.optional-dependencies]
-dev = [
-    "ark[core]",
-    # CLI for bumping the version number
-    "pre-commit",
-    "twine>=4.0.2"
-]
 core = [
     "anndata",
     "numpy",
@@ -37,16 +31,35 @@ core = [
     "spatialdata",
     "spatialdata-plot",
     "ray[serve]",
-    "redis[hiredis]",
     "torch",
+    "mosaicml",
+    "captum",
     "hvplot",
     "tqdm",
     "httpx",
     "anyio",
     "rich",
 ]
+dev = [
+    "ark[core]",
+    # CLI for bumping the version number
+    "pre-commit",
+    "twine>=4.0.2",
+]
 debug = ["session-info"]
-# cuda = ["cupy", "cu_df", "cu_dask", "cugraph-cu11", "dask_cuda", "cucim", "pylibraft"]
+cuda = [
+    "cupy-cuda12x",
+    "cudf-cu12",
+    "dask-cudf-cu12",
+    "cuml-cu12",
+    "cugraph-cu12",
+    "cuspatial-cu12",
+    "cuproj-cu12",
+    "cuxfilter-cu12",
+    "cucim",
+    "optuna",
+    "rapids-singlecell[rapids]",
+]
 nb = ["ipywidgets", "jupyterlab"]
 doc = [
     "docutils>=0.8,!=0.18.*,!=0.19.*",
@@ -56,12 +69,16 @@ doc = [
     "sphinxcontrib-bibtex>=1.0.0",
     "sphinx-autodoc-typehints",
     "sphinxext-opengraph",
+    "scanpydoc",
     # For notebooks
     "ipykernel",
     "ipython",
     "sphinx-copybutton",
 ]
 test = ["pytest", "pytest-cov"]
+
+[project.scripts]
+# cupyx.tools.install_library --cuda 12.x --library cutensor
 
 [tool.hatch]
 metadata.allow-direct-references = true

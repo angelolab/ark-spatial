@@ -1,7 +1,7 @@
-"""Signal extraction module
+"""Signal extraction module.
 
 Currently the agg methods in `sdata.aggregate` which get called in `xarray-spatial.zonal_stats` do not
-support dask backed arrays (i.e.) we can't pass custom functions to the `agg` method. Unfortunate
+support dask backed arrays (i.e.) we can't pass custom functions to the `agg` method. Unfortunate.
 """
 
 
@@ -23,5 +23,5 @@ def signal_extraction_wrapper(func):
 
 @signal_extraction_wrapper
 def positive_pixels_extraction(fov: SpatialImage, threshold: float = 0) -> SpatialImage:
-    f = fov.load().where(fov > threshold, 0).sum(dim=(Y, X)).values()
+    f: SpatialImage = fov.where(fov > threshold, 0).sum(dim=(Y, X))
     return f

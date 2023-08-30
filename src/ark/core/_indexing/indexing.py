@@ -240,43 +240,17 @@ class IndexingAccessor(SpatialDataAccessor):
         return sdata
 
 
-@register_spatial_data_accessor("ArkIteratorAccessor")
+@register_spatial_data_accessor("iter_coords")
 class ArkIteratorAccessor(SpatialDataAccessor):
     @property
     def fovs(self) -> list[str]:
-        fovs: list[str] = ns.natsorted(self.sdata.images.keys())
+        all_coords = filter(lambda c: c != "global", self.sdata.coordinate_systems.copy())
+        fovs: list[str] = ns.natsorted(all_coords)
         return fovs
 
     def __len__(self) -> int:
         return len(self.fovs)
 
-
-@register_spatial_data_accessor("iter")
-class IteratorImageAccessor(ArkIteratorAccessor):
-    def cohort(
-        self, labels: list[str] | str | None = None, ids: bool = True
-    ) -> Generator[sd.SpatialData]:
-        match (labels, ids):
-            case (list(), True):
-                return self.__iter_with_ids__(labels=labels)
-            case (str(), True):
-                return self.__iter_with_ids__(labels=[labels])
-            case (str(), False):
-                return self.__iter_witout_ids__(labels=[labels])
-            case _:
-                return self.__iter_with_ids__(labels=[])
-
-    def fovs_sd(self) -> Generator[sd.SpatialData]:
+    def __iter__(self) -> Generator[tuple[str, sd.SpatialData]]:
         for fov in self.fovs:
-            yield self.sdata.sel(elements=fov)
-
-    def fov_names(self) -> Generator[str]:
-        yield from self.fovs
-
-    def __iter_witout_ids__(self, labels: list[str]) -> Generator[sd.SpatialData]:
-        for fov in self.fovs:
-            yield self.sdata.sel(elements=[fov, *[f"{fov}_{label}" for label in labels]])
-
-    def __iter_with_ids__(self, labels: list[str]) -> Generator[tuple[str, sd.SpatialData]]:
-        for fov in self.fovs:
-            yield (fov, self.sdata.sel(elements=[fov, *[f"{fov}_{label}" for label in labels]]))
+            yield (fov, self.sdata.sel(fov))

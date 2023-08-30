@@ -1,13 +1,14 @@
 import pathlib
 import re
 import tempfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from urllib.parse import unquote_plus
 from zipfile import ZIP_DEFLATED, ZipFile
 
 import httpx
 import natsort as ns
-from multiscale_spatial_image.multiscale_spatial_image import MultiscaleSpatialImage
+import numpy as np
+from numpy.typing import ArrayLike
 from skimage.io import imread, imsave
 from spatial_image import SpatialImage
 from spatialdata.models import (
@@ -15,17 +16,18 @@ from spatialdata.models import (
     X,
     Y,
 )
+from spatialdata.transformations import Identity
 
 
 @dataclass
 class SegmentationImageContainer:
     fov_name: str
     segmentation_label_masks: dict[str, Labels2DModel]
+    x_coords: ArrayLike = field(init=False)
+    y_coords: ArrayLike = field(init=False)
 
 
-async def _create_deepcell_input(
-    fov: SpatialImage | MultiscaleSpatialImage, dc_session: httpx.AsyncClient
-):
+async def _create_deepcell_input(fov: SpatialImage, dc_session: httpx.AsyncClient):
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_fov_dir = pathlib.Path(tmpdir) / fov.name
         temp_fov_dir.mkdir()
@@ -43,11 +45,13 @@ async def _create_deepcell_input(
         seg_label_mask: SegmentationImageContainer = _deepcell_seg_to_spatial_labels(
             fov_name=fov.name, extracted_seg_dir=temp_extracted_seg_dir
         )
+        seg_label_mask.x_coords = fov.coords[X]
+        seg_label_mask.y_coords = fov.coords[Y]
 
     return seg_label_mask
 
 
-def extract_zip(zip_path: pathlib.Path, save_dir: pathlib.Path):
+def extract_zip(zip_path: pathlib.Path, save_dir: pathlib.Path) -> None:
     with ZipFile(zip_path, "r") as zipObj:
         zipObj.extractall(save_dir)
 
@@ -59,18 +63,20 @@ def _deepcell_seg_to_spatial_labels(fov_name: str, extracted_seg_dir: pathlib.Pa
         match int(re.search(r"feature_(\d)", smn.stem).group(1)):
             case 0:
                 renamed_seg_masks["whole_cell"] = Labels2DModel.parse(
-                    data=imread(fname=smn).squeeze().astype("int32"), dims=(Y, X)
+                    data=imread(fname=smn).squeeze().astype(np.int64),
+                    dims=(Y, X),
+                    transformations={fov_name: Identity()},
                 )
             case 1:
                 renamed_seg_masks["nuclear"] = Labels2DModel.parse(
-                    data=imread(fname=smn).squeeze().astype("int32"), dims=(Y, X)
+                    data=imread(fname=smn).squeeze().astype(np.int64),
+                    dims=(Y, X),
+                    transformations={fov_name: Identity()},
                 )
     return SegmentationImageContainer(fov_name, renamed_seg_masks)
 
 
-def _save_image(
-    fov_chan: SpatialImage | MultiscaleSpatialImage, save_dir: pathlib.Path, plugin_args
-):
+def _save_image(fov_chan: SpatialImage, save_dir: pathlib.Path, plugin_args):
     imsave(
         save_dir / f"{fov_chan.name}.tiff",
         fov_chan,
@@ -80,7 +86,7 @@ def _save_image(
     return fov_chan.name
 
 
-def spaital_data_to_fov(fov: SpatialImage | MultiscaleSpatialImage, save_dir: pathlib.Path):
+def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
     plugin_args: dict[str, str | dict] = {
         "compression": "zlib",
         "compressionargs": {"level": 7},
@@ -88,7 +94,7 @@ def spaital_data_to_fov(fov: SpatialImage | MultiscaleSpatialImage, save_dir: pa
     _save_image(fov, save_dir, plugin_args)
 
 
-def zip_input_files(fov: SpatialImage | MultiscaleSpatialImage, fov_temp_dir: pathlib.Path):
+def zip_input_files(fov: SpatialImage, fov_temp_dir: pathlib.Path):
     # write all files to the zip file
     zip_path = fov_temp_dir.parent / f"{fov_temp_dir.name}.zip"
 
