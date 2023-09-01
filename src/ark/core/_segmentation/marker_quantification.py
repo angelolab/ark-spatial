@@ -2,10 +2,8 @@ from collections.abc import Iterable
 
 import dask.dataframe as dd
 import spatialdata as sd
-from anndata import AnnData, concat
 from dask.distributed import get_client
 from spatial_image import SpatialImage
-from tqdm.auto import tqdm
 
 import ark
 from ark.core._accessors import SpatialDataAccessor, register_spatial_data_accessor
@@ -35,33 +33,25 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
         fov_regionprops_tables = []
         fov_markers_tables = []
 
-        for fov_id, fov_sd in tqdm(
-            self.sdata.iter_cohort(labels="whole_cell"), total=len(self.sdata.iter_cohort)
-        ):
+        for fov_id, fov_sd in self.sdata.iter_coords:
             f: dd.DataFrame = self._get_single_compartment_props(
                 fov_id=fov_id,
                 fov_sd=fov_sd,
                 nuclear_counts=nuclear_counts,
             )
-            g: sd.SpatialData = ark.client.submit(self._compute_marker_counts, fov_id, fov_sd)
+            g: sd.SpatialData = ark.client.submit(self._compute_marker_counts, fov_id)
 
             fov_regionprops_tables.append(f)
             fov_markers_tables.append(g)
-
+        ark.client.gather(fov_markers_tables)
         obs: dd.DataFrame = dd.concat(dfs=fov_regionprops_tables).compute()
-        d = concat(adatas=ark.client.gather(fov_markers_tables))
-        tab1 = AnnData(X=d.X, obs=obs, uns=d.uns, var=d.var)
-
-        return obs, tab1
-        # print(spatial_data_attrs)
-
-        # self.sdata.table = AnnData(obs=cell_table, uns={"spatialdata_attrs": spatial_data_attrs})
+        return obs
 
     def generate_fov_table(self, fov_id, fov_sd):
         local_c = get_client()
 
         scp = local_c.submit(self._get_single_compartment_props, fov_id, fov_sd)
-        cmc = local_c.submit(self._compute_marker_counts, fov_id, fov_sd)
+        cmc = local_c.submit(self._compute_marker_counts, fov_id)
 
         return (scp, cmc)
 
@@ -84,13 +74,12 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
     def _compute_marker_counts(
         self,
         fov_id: str,
-        fov_sd: sd.SpatialData,
-    ) -> AnnData:
-        fov_markers: AnnData = fov_sd.aggregate(
+    ) -> sd.SpatialData:
+        agg_val = self.sdata.aggregate(
             values=fov_id,
             by=f"{fov_id}_whole_cell",
             agg_func="sum",
             instance_key="cell_id",
             region_key="fov_id",
-        ).table
-        return fov_markers
+        )
+        return agg_val

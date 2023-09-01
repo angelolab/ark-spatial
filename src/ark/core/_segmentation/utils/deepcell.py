@@ -34,7 +34,7 @@ async def _create_deepcell_input(fov: SpatialImage, dc_session: httpx.AsyncClien
 
         spaital_data_to_fov(fov, temp_fov_dir)
 
-        zip_path = zip_input_files(fov, temp_fov_dir)
+        zip_path = zip_input_files(temp_fov_dir)
 
         output_zip_path = await upload_to_deepcell(zip_path, dc_session)
 
@@ -91,10 +91,15 @@ def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
         "compression": "zlib",
         "compressionargs": {"level": 7},
     }
-    _save_image(fov, save_dir, plugin_args)
+    imsave(
+        save_dir / f"{fov.name}.tiff",
+        fov,
+        check_contrast=False,
+        **plugin_args,
+    )
 
 
-def zip_input_files(fov: SpatialImage, fov_temp_dir: pathlib.Path):
+def zip_input_files(fov_temp_dir: pathlib.Path):
     # write all files to the zip file
     zip_path = fov_temp_dir.parent / f"{fov_temp_dir.name}.zip"
 

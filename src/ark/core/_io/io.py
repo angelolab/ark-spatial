@@ -78,7 +78,7 @@ def convert_fov(shared_objects: str, fov: Path) -> _fov:
     _fov
         A dataclass containing the FOV name and SpatialImage.
     """
-    array_type = shared_objects
+    array_type: str = shared_objects
     data: da.Array = imread(fname=f"{fov.as_posix()}/*.tiff", arraytype=array_type)
     channels: list[str] = ns.natsorted([f.stem for f in fov.glob("*.tiff")])
     fov_si: SpatialImage = Image2DModel().parse(
