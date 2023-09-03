@@ -62,7 +62,7 @@ class SegmentationAccessor(SpatialDataAccessor):
                         self.sdata.add_labels(name=f"{sic.fov_name}_{seg_type}", labels=seg_label)
                     except KeyError:
                         if overwrite_masks:
-                            self.sdata.labels.pop(f"{sic.fov_name}_{seg_type}", None)
+                            _ = self.sdata.labels.pop(f"{sic.fov_name}_{seg_type}", None)
                             self.sdata.add_labels(
                                 name=f"{sic.fov_name}_{seg_type}", labels=seg_label
                             )

@@ -76,16 +76,6 @@ def _deepcell_seg_to_spatial_labels(fov_name: str, extracted_seg_dir: pathlib.Pa
     return SegmentationImageContainer(fov_name, renamed_seg_masks)
 
 
-def _save_image(fov_chan: SpatialImage, save_dir: pathlib.Path, plugin_args):
-    imsave(
-        save_dir / f"{fov_chan.name}.tiff",
-        fov_chan,
-        check_contrast=False,
-        **plugin_args,
-    )
-    return fov_chan.name
-
-
 def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
     plugin_args: dict[str, str | dict] = {
         "compression": "zlib",

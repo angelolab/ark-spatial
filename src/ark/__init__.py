@@ -7,13 +7,14 @@ from . import pl, pp, tl
 from .core import indexing as idx
 from .core import io
 
-__all__ = ["pl", "pp", "tl", "io", "idx", "client"]
+__all__ = ["pl", "pp", "tl", "io", "idx", "client", "address"]
 
 __version__ = version("ark")
 
 
 # Set the local cluster
 client = Client()
+address = client.scheduler.address
 
 # Set ray as the default scheduler for dask
 enable_dask_on_ray()

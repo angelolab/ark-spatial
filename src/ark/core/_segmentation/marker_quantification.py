@@ -1,8 +1,9 @@
 from collections.abc import Iterable
+from itertools import chain
 
 import dask.dataframe as dd
 import spatialdata as sd
-from dask.distributed import get_client
+from dask import compute, delayed
 from spatial_image import SpatialImage
 
 import ark
@@ -15,7 +16,7 @@ from .utils import REGIONPROPS_BASE, regionprops
 @register_spatial_data_accessor("marker_quantification")
 class MarkerQuantificationAccessor(SpatialDataAccessor):
     _region_props: list[str] = REGIONPROPS_BASE.copy()
-    _derived_props: list[str] = REGIONPROPS_SINGLE_COMP
+    _derived_props: list[str] = REGIONPROPS_SINGLE_COMP.copy()
 
     @property
     def default_region_props(self) -> list[str]:
@@ -29,48 +30,46 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
         self, nuclear_counts: bool = False, properties: Iterable[str] = ("label", "area")
     ):
         self.region_props = properties
+        # c = Client(address=ark.address)
+        fov_ids, _ = chain(zip(*self.sdata.iter_coords, strict=True))
 
-        fov_regionprops_tables = []
-        fov_markers_tables = []
+        fov_sd_ct = []
+        for fov_id in fov_ids:
+            rp_df: dd.DataFrame = self._get_single_compartment_props(fov_id)
+            fov_sd: sd.SpatialData = self._compute_marker_counts(fov_id)
 
-        for fov_id, fov_sd in self.sdata.iter_coords:
-            f: dd.DataFrame = self._get_single_compartment_props(
-                fov_id=fov_id,
-                fov_sd=fov_sd,
-                nuclear_counts=nuclear_counts,
-            )
-            g: sd.SpatialData = ark.client.submit(self._compute_marker_counts, fov_id)
+            fov_sd_ct.append(self._generate_fov_table(fov_sd, rp_df))
 
-            fov_regionprops_tables.append(f)
-            fov_markers_tables.append(g)
-        ark.client.gather(fov_markers_tables)
-        obs: dd.DataFrame = dd.concat(dfs=fov_regionprops_tables).compute()
-        return obs
+        # with TqdmCallback(desc="compute"):
+        (q,) = compute(fov_sd_ct, address=ark.address)
+        # c.gather(q)
+        # progress(q)
+        # f = sd.concatenate([*q])
+        return q
 
-    def generate_fov_table(self, fov_id, fov_sd):
-        local_c = get_client()
+    @delayed
+    def _generate_fov_table(self, fov_sd, rp_df) -> sd.SpatialData:
+        fov_sd.table.obs = rp_df.compute()
 
-        scp = local_c.submit(self._get_single_compartment_props, fov_id, fov_sd)
-        cmc = local_c.submit(self._compute_marker_counts, fov_id)
+        return fov_sd
 
-        return (scp, cmc)
-
+    @delayed
     def _get_single_compartment_props(
         self,
         fov_id: str,
-        fov_sd: sd.SpatialData,
         nuclear_counts: bool = False,
     ) -> dd.DataFrame:
-        segmentation_mask: SpatialImage = fov_sd.labels[f"{fov_id}_whole_cell"]
-        f = regionprops(
+        segmentation_mask: SpatialImage = self.sdata.labels[f"{fov_id}_whole_cell"]
+        rp_df = regionprops(
             labels=segmentation_mask,
             properties=self.region_props,
             derived_properties=self._derived_props,
-        ).rename(columns={"label": "cell_id"})
-        f["fov_id"] = f"{fov_id}_whole_cell"
-        f["fov_id"] = f["fov_id"].astype("category")
-        return f
+        ).rename(columns={"label": "instance_id"})
+        rp_df["region"] = f"{fov_id}_whole_cell"
+        rp_df["region"] = rp_df["region"].astype("category")
+        return rp_df
 
+    @delayed
     def _compute_marker_counts(
         self,
         fov_id: str,
@@ -79,7 +78,10 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
             values=fov_id,
             by=f"{fov_id}_whole_cell",
             agg_func="sum",
-            instance_key="cell_id",
-            region_key="fov_id",
+            region_key="region",
+            instance_key="instance_id",
+            target_coordinate_system=fov_id,
+            deepcopy=False,
         )
+        # agg_val.table.obs = agg_val.table.obs.rename(columns={"label": "instance_id"})
         return agg_val
