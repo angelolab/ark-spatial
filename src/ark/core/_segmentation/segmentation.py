@@ -6,6 +6,7 @@ import xarray as xr
 from anyio import start_blocking_portal
 from spatial_image import SpatialImage
 from spatialdata.models import C
+from tqdm.auto import tqdm
 
 from ark.core._accessors import SpatialDataAccessor, register_spatial_data_accessor
 
@@ -35,12 +36,7 @@ class SegmentationAccessor(SpatialDataAccessor):
     def membrane_markers(self, value: list[str]) -> None:
         self._membrane_markers = value
 
-    def run_deepcell(
-        self,
-        nucs: list[str] | None = None,
-        mems: list[str] | None = None,
-        overwrite_masks: bool = False,
-    ) -> None:
+    def _set_markers(self, nucs: list[str] | None, mems: list[str] | None):
         match (nucs, mems):
             case (None, None):
                 raise ValueError("Must specify at least one nuclear marker or one membrane marker.")
@@ -49,6 +45,14 @@ class SegmentationAccessor(SpatialDataAccessor):
 
         self.nuclear_markers = nucs
         self.membrane_markers = mems
+
+    def run_deepcell(
+        self,
+        nucs: list[str] | None = None,
+        mems: list[str] | None = None,
+        overwrite_masks: bool = False,
+    ) -> None:
+        self._set_markers(nucs, mems)
 
         with start_blocking_portal() as portal:
             futures = [
@@ -86,3 +90,16 @@ class SegmentationAccessor(SpatialDataAccessor):
             )
 
         return segmentation_images
+
+    # TODO: open an issue in the cellpose repo and put a fix in for Spatial Data support
+    def run_cellpose2(self, nucs: list[str] | None = None, mems: list[str] | None = None):
+        from cellpose.models import Cellpose
+
+        self._set_markers(nucs, mems)
+
+        cyto2_model = Cellpose(model_type="cyto2")
+
+        for fov_name, fov_sd in tqdm(self.sdata.iter_coords):
+            fov_si: SpatialImage = self._sum_markers(fov_name, fov_sd)
+            masks, flows, styles, diams = cyto2_model.eval(x=fov_si.data, channel_axis=0)
+            print(diams)
