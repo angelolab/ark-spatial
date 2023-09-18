@@ -8,7 +8,7 @@ Modified to accept other properties.
 
 import inspect
 import re
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Hashable, Mapping
 from itertools import product
 
 import dask.dataframe as dd
@@ -18,6 +18,7 @@ import xarray as xr
 from dask import delayed
 from numpy.typing import ArrayLike
 from skimage.measure import label, moments, regionprops_table
+from spatial_image import SpatialImage
 
 REGIONPROPS_BASE: list[str] = [
     "label",
@@ -64,8 +65,7 @@ def regionprops_df(
     derived_properties: Mapping[str, ArrayLike] = {},
     other_cols=None,
 ) -> pd.DataFrame:
-    """
-    Computes the regionprops of each labelled region in a segmentaiton image.
+    """Computes the regionprops of each labelled region in a segmentaiton image.
 
     Lightly wrap skimage.measure.regionprops_table to return a DataFrame.
     Also allow for the addition of extra columns, used in reginprops to track
@@ -73,21 +73,22 @@ def regionprops_df(
 
     Parameters
     ----------
-    labels : types.ArrayLike
-        Array containing labelled regions. Background is assumed to have
-        value 0 and will be ignored.
-    intensity : Optional[types.ArrayLike] Default None
-        Optional intensity field to compute weighted region properties from.
-    properties : tuple[str]
-        Properties to compute for each region. By default compute all
-        properties that return fixed size outputs. If provided an intensity image,
-        corresponding weighted properties will also be computed by defualt.
+    labels : ArrayLike
+        Array like container of labelled regions. Background is assumed to have a value of 0.
+    intensity : ArrayLike | None, optional
+        Optional intensity field to compute weighted region proeprties from, by default None
+    properties : tuple[str, ...], optional
+        Properties to compute for each region. Computes all properties which return fixed sized outputs. If provided
+        an intensity image, corresponding weighted proeprteis will also be computed by default, by default REGIONPROPS_BASE
+    derived_properties : Mapping[str, ArrayLike], optional
+        A list of custom region properties which are calculated from the orginal set of region properties, by default {}
+    other_cols : _type_, optional
+        Other columns in the DataFrame, by default None
 
     Returns
     -------
-    properties : pd.DataFrame
-        Dataframe containing the desired properties as columns and each
-        labelled region as a row.
+    pd.DataFrame
+        Returns the regionprops as a DataFrame
     """
     if other_cols is None:
         other_cols = {}
@@ -111,30 +112,29 @@ def regionprops_df(
 
 
 def regionprops(
-    labels: ArrayLike,
-    intensity: ArrayLike | None = None,
+    labels: SpatialImage,
+    intensity: SpatialImage | None = None,
     properties: tuple[str, ...] = REGIONPROPS_BASE,
     derived_properties: tuple[str, ...] = REGIONPROPS_SINGLE_COMP,
     core_dims: tuple[int | str, ...] | None = None,
 ) -> dd.DataFrame:
     """
-    f.
+    Creates the delayed DataFrame and prepares the Dask execution graph for lazy execution.
 
-    Loop over the frames of ds and compute the regionprops for
+    Sets the Dask execution graph to loop over the Delayed DataFrames and compute the regionprops for
     each labelled image in each frame.
 
     Parameters
     ----------
-    labels : types.ArrayLike
-        Array containing labelled regions. Background is assumed to have
-        value 0 and will be ignored.
-    intensity : array-like or None, Default None
-        Optional intensity field to compute weighted region properties from.
-    properties : str, tuple[str] default "non-image"
-        Properties to compute for each region. Can pass an explicit tuple
-        directly to regionprops or use one of the followings shortcuts:
-        "minimal", "non-image", "all". If provided an intensity image, basic
-        weighted properties will also be computed by defualt.
+    labels : SpatialImage
+        The SpatialImage of labelled regions. Background is assumed to have a value of 0.
+    intensity : SpatialImage | None, optional
+        A SpatilaImage of the intensity field to compute weighted region proeprties from, by default None
+    properties : tuple[str, ...], optional
+        Properties to compute for each region. Computes all properties which return fixed sized outputs. If provided
+        an intensity image, corresponding weighted proeprteis will also be computed by default, by default REGIONPROPS_BASE
+    derived_properties : Mapping[str, ArrayLike], optional
+        A list of custom region properties which are calculated from the orginal set of region properties, by default {}
     core_dims : tuple[int] or tuple[str] default None
         Dimensions of input arrays that correspond to spatial (xy) dimensions of each
         image. If None, it is assumed that the final two dimensions are the
@@ -155,7 +155,7 @@ def regionprops(
 
     meta = _get_meta(loop_sizes, properties, derived_properties)
 
-    labels_arr, intensity_arr = _get_arrays(labels, intensity)
+    labels_arr, intensity_arr = (si.data for si in [labels, intensity])
 
     all_props = []
 
@@ -200,7 +200,25 @@ for prop in DEFAULT_REGIONPROPS:
     DEFAULT_PROPS_TO_COLS[prop] = col_list
 
 
-def _get_meta(loop_sizes, properties, derived_properties):
+def _get_meta(
+    loop_sizes: dict[Hashable, list[int]], properties: list[str], derived_properties: list[str]
+) -> pd.DataFrame:
+    """Generates the meta DataFrame for the Dask DataFrame.
+
+    Parameters
+    ----------
+    loop_size : dict[Hashable, list[int]
+        The number of regions in the image.
+    properties : list[str]
+        The properties to compute for each region.
+    derived_properties : list[str]
+        The derived properties to compute for each region.
+
+    Returns
+    -------
+    pd.DataFrame
+        The meta DataFrame for the Dask DataFrame.
+    """
     meta = pd.DataFrame()
     for prop in properties:
         meta = meta.join(DEFAULT_META[DEFAULT_PROPS_TO_COLS[prop]], how="outer")
@@ -213,7 +231,25 @@ def _get_meta(loop_sizes, properties, derived_properties):
     return meta.join(other_cols)
 
 
-def _get_loop_sizes(labels, core_dims):
+def _get_loop_sizes(
+    labels: SpatialImage, core_dims: tuple[int | str, ...] | None
+) -> dict[Hashable, list[int | str]]:
+    """Gets the loop sizes for the Dask DataFrame.
+
+    Parameters
+    ----------
+    labels : SpatialImage
+        The labels to compute the regionprops for.
+    core_dims : tuple[int  |  str, ...] | None
+        Dimensions of input arrays that correspond to spatial (xy) dimensions of each
+        image. If None, it is assumed that the final two dimensions are the
+        spatial dimensions.
+
+    Returns
+    -------
+    dict[Hashable, list[int]]
+        Returns the loop sizes for the Dask DataFrame for each dimension.
+    """
     if isinstance(labels, xr.DataArray):
         if core_dims is None:
             loop_sizes = {
@@ -242,7 +278,21 @@ def _get_loop_sizes(labels, core_dims):
     return loop_sizes
 
 
-def _get_pos_core_dims(core_dims, ndim):
+def _get_pos_core_dims(core_dims: list, ndim: int) -> tuple[int]:
+    """Gets the positive core dimensions.
+
+    Parameters
+    ----------
+    core_dims : list
+        The core dimensions.
+    ndim : int
+        The number of dimensions.
+
+    Returns
+    -------
+    tuple[int]
+        The positive core dimensions.
+    """
     pos_core_dims = []
     for d in core_dims:
         if d < 0:
@@ -253,25 +303,21 @@ def _get_pos_core_dims(core_dims, ndim):
     return tuple(pos_core_dims)
 
 
-def _get_arrays(labels, intensity):
-    if intensity is None:
-        intensity_arr = None
-    else:
-        if isinstance(intensity, xr.DataArray):
-            intensity_arr = intensity.data
-        else:
-            intensity_arr = intensity
+def rp_table_wrapper(func: Callable) -> Callable:
+    """Wraps a function to extract a set of regionprops necessary for the function.
 
-    if isinstance(labels, xr.DataArray):
-        labels_arr = labels.data
-    else:
-        labels_arr = labels
+    Parameters
+    ----------
+    func : Callable
+        The function to wrap
 
-    return labels_arr, intensity_arr
+    Returns
+    -------
+    Callable
+        The wrapped function with the necessary regionprops extracted.
+    """
 
-
-def rp_table_wrapper(func):
-    def wrapper(region_properties: dict[str, ArrayLike], **kwargs):
+    def wrapper(region_properties: dict[str, ArrayLike], **kwargs) -> Callable:
         props: list[str] = inspect.getargs(func.__code__).args
         kwargs.update({k: region_properties[k] for k in props if k in region_properties})
 
@@ -282,48 +328,46 @@ def rp_table_wrapper(func):
 
 @rp_table_wrapper
 def major_minor_axis_ratio(axis_minor_length: ArrayLike, axis_major_length: ArrayLike) -> ArrayLike:
-    """_summary_.
+    """Computes the major axis length divided by the minor axis length.
 
     Parameters
     ----------
     axis_minor_length : ArrayLike
-        _description_
+        The container of the minor axis length of each region.
     axis_major_length : ArrayLike
-        _description_
+        The container of the major axis length of each region.
 
     Returns
     -------
     ArrayLike
-        _description_
+        The major axis length divided by the minor axis length.
     """
-    mmar: ArrayLike = np.empty_like(axis_major_length, dtype=np.float64)
-    for i, (a, b) in enumerate(zip(axis_minor_length, axis_major_length, strict=True)):
-        if b == 0:
-            mmar[i] = np.nan
-        else:
-            mmar[i] = a / b
+    mmar: ArrayLike = np.divide(
+        axis_major_length,
+        axis_minor_length,
+        out=np.full_like(a=axis_minor_length, fill_value=np.nan, dtype=np.float64),
+        where=axis_minor_length != 0,
+    )
     return mmar
 
 
 @rp_table_wrapper
 def perim_square_over_area(perimeter: ArrayLike, area: ArrayLike) -> ArrayLike:
-    """_summary_.
+    """Calculates the perimiter squared divided by the area of the region.
 
     Parameters
     ----------
     perimeter : ArrayLike
-        _description_
+        The perimeter of each region.
     area : ArrayLike
-        _description_
+        The area of each region.
 
     Returns
     -------
     ArrayLike
-        _description_
+        The perimiter squared divided by the area of the region.
     """
-    psoa: ArrayLike = np.empty_like(perimeter, dtype=np.float64)
-    for i, (p, a) in enumerate(zip(perimeter, area, strict=True)):
-        psoa[i] = p**2 / a
+    psoa: ArrayLike = perimeter**2 / area
     return psoa
 
 
@@ -331,26 +375,26 @@ def perim_square_over_area(perimeter: ArrayLike, area: ArrayLike) -> ArrayLike:
 def major_axis_equiv_diam_ratio(
     axis_major_length: ArrayLike, equivalent_diameter: ArrayLike
 ) -> ArrayLike:
-    """_summary_.
+    """Calculates the ratio between the major axis length and the equivalent diameter.
 
     Parameters
     ----------
     axis_major_length : ArrayLike
-        _description_
+        The major axis length of each region.
     equivalent_diameter : ArrayLike
-        _description_
+        The equivalent diameter of each region.
 
     Returns
     -------
     ArrayLike
-        _description_
+        The ratio between the major axis length and the equivalent diameter for each region.
     """
-    aml: ArrayLike = np.empty_like(axis_major_length, dtype=np.float64)
-    for i, (a, e) in enumerate(zip(axis_major_length, equivalent_diameter, strict=True)):
-        if e == 0:
-            aml[i] = np.nan
-        else:
-            aml[i] = a / e
+    aml: ArrayLike = np.divide(
+        axis_major_length,
+        equivalent_diameter,
+        out=np.full_like(a=axis_major_length, fill_value=np.nan, dtype=np.float64),
+        where=equivalent_diameter != 0,
+    )
     return aml
 
 
@@ -358,26 +402,26 @@ def major_axis_equiv_diam_ratio(
 def convex_hull_equiv_diam_ratio(
     area_convex: ArrayLike, equivalent_diameter: ArrayLike
 ) -> ArrayLike:
-    """_summary_.
+    """Calculates the ratio between the convex area and the equivalent diameter.
 
     Parameters
     ----------
     area_convex : ArrayLike
-        _description_
+        The convex area of each region.
     equivalent_diameter : ArrayLike
-        _description_
+        The equivalent diameter of each region.
 
     Returns
     -------
     ArrayLike
-        _description_
+        The ratio between the convex area and the equivalent diameter for each region.
     """
-    chedr: ArrayLike = np.empty_like(area_convex, dtype=np.float64)
-    for i, (a, e) in enumerate(zip(area_convex, equivalent_diameter, strict=True)):
-        if e == 0:
-            chedr[i] = np.nan
-        else:
-            chedr[i] = a / e
+    chedr: ArrayLike = np.divide(
+        area_convex,
+        equivalent_diameter,
+        out=np.full_like(a=area_convex, fill_value=np.nan, dtype=np.float64),
+        where=equivalent_diameter != 0,
+    )
     return chedr
 
 
@@ -385,6 +429,22 @@ def convex_hull_equiv_diam_ratio(
 def centroid_diff(
     image: list[ArrayLike], image_convex: list[ArrayLike], area: ArrayLike
 ) -> ArrayLike:
+    """Computes the L2 distance between the centroid of the region and the centroid of the convex hull.
+
+    Parameters
+    ----------
+    image : list[ArrayLike]
+        The container of the image of each region.
+    image_convex : list[ArrayLike]
+        The container of the convex image of each region.
+    area : ArrayLike
+        The area of each region.
+
+    Returns
+    -------
+    ArrayLike
+        The L2 distance between the centroid of the region and the centroid of the convex hull.
+    """
     centroid_dist = np.empty_like(area, dtype=np.float64)
     for i, (im, im_c, a) in enumerate(zip(image, image_convex, area, strict=True)):
         cell_M = moments(im)
@@ -401,6 +461,31 @@ def centroid_diff(
 
 @rp_table_wrapper
 def num_concavities(image: list[ArrayLike], image_convex: list[ArrayLike], **kwargs) -> ArrayLike:
+    """Computes the number of concavities in the region.
+
+    Parameters
+    ----------
+    image : list[ArrayLike]
+        The container of the image of each region.
+    image_convex : list[ArrayLike]
+        The container of the convex image of each region.
+    **kwargs:
+        Keyword arguments for `_diff_img_concavities`. The following keywords are supported:
+
+            - `small_idx_area_cutoff`: int, optional
+                    The area cutoff for small regions, by default 10
+
+            - `max_compactness`: int, optional
+                    The maximum compactness for small regions, by default 60
+
+            - `large_idx_area_cutoff`: int, optional
+                    The area cutoff for large regions, by default 100
+
+    Returns
+    -------
+    ArrayLike
+        The number of concavities per region, thresholded.
+    """
     n_concavities: ArrayLike = np.zeros_like(image, dtype=np.int64)
     for i, (im, im_c) in enumerate(zip(image, image_convex, strict=True)):
         diff_img: ArrayLike = im_c ^ im
@@ -410,7 +495,30 @@ def num_concavities(image: list[ArrayLike], image_convex: list[ArrayLike], **kwa
     return n_concavities
 
 
-def _diff_img_concavities(diff_img, **kwargs):
+def _diff_img_concavities(diff_img: ArrayLike, **kwargs) -> np.int64:
+    """A helper function which  calculates the number of concativies for a single region.
+
+    Parameters
+    ----------
+    diff_img : ArrayLike
+        The difference image between the convex hull and the region.
+    **kwargs:
+        Keyword arguments for `_diff_img_concavities`. The following keywords are supported:
+
+            - `small_idx_area_cutoff`: int, optional
+                    The area cutoff for small regions, by default 10
+
+            - `max_compactness`: int, optional
+                    The maximum compactness for small regions, by default 60
+
+            - `large_idx_area_cutoff`: int, optional
+                    The area cutoff for large regions, by default 100
+
+    Returns
+    -------
+    np.int64
+        The number of concavities for the region.
+    """
     labeled_diff_image = label(diff_img, connectivity=1)
 
     hull_df: pd.DataFrame = regionprops_df(labeled_diff_image, properties=["area", "perimeter"])
@@ -431,6 +539,7 @@ def _diff_img_concavities(diff_img, **kwargs):
     return np.sum(combined_idx)
 
 
+# TODO: Implement nuclear properties
 def nc_ratio(**kwargs):
     pass
 

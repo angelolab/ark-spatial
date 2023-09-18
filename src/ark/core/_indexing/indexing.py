@@ -19,7 +19,7 @@ from .utils import (
 @register_spatial_data_accessor("sel")
 class IndexingAccessor(SpatialDataAccessor):
     """
-    Preprocessing functions for SpatialData objects.
+    The indexing accessor for SpatialData objects.
 
     Parameters
     ----------
@@ -242,6 +242,21 @@ class IndexingAccessor(SpatialDataAccessor):
 
 @register_spatial_data_accessor("iter_coords")
 class ArkIteratorAccessor(SpatialDataAccessor):
+    """An accessor used for iterating over coordinates in a `SpatialData` object sorted by natsort.
+
+    Excludes the "global" coordinate system.
+
+    Parameters
+    ----------
+    SpatialDataAccessor : SpatialDataAccessor
+        The base `SpatialData` accessor class.
+
+    Yields
+    ------
+    sd.SpatialData
+        The spatial data object for the filtered by the the current coordiante.
+    """
+
     @property
     def fovs(self) -> list[str]:
         all_coords = filter(lambda c: c != "global", self.sdata.coordinate_systems.copy())

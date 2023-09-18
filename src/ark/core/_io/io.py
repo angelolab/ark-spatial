@@ -48,7 +48,6 @@ def load_cohort(
     fovs: Generator[Path] = list(cohort_dir.glob("*/"))
 
     spatial_data = sd.SpatialData()
-    # you have so many cores, why not use them?
     with WorkerPool(n_jobs=None, shared_objects=array_type) as pool:
         for fov in pool.imap(
             func=convert_fov,

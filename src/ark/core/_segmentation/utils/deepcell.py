@@ -27,7 +27,23 @@ class SegmentationImageContainer:
     y_coords: ArrayLike = field(init=False)
 
 
-async def _create_deepcell_input(fov: SpatialImage, dc_session: httpx.AsyncClient):
+async def _create_deepcell_input(
+    fov: SpatialImage, dc_session: httpx.AsyncClient
+) -> SegmentationImageContainer:
+    """Runs the Deepcell to `SpatialData` label mask pipeline.
+
+    Parameters
+    ----------
+    fov : SpatialImage
+        The `SpatialImage` object to generate nuclear and whole cell masks on.
+    dc_session : httpx.AsyncClient
+        The httpx session to use for the Deepcell API calls.
+
+    Returns
+    -------
+    SegmentationImageContainer
+        A container for the segmentation label masks.
+    """
     with tempfile.TemporaryDirectory() as tmpdir:
         temp_fov_dir = pathlib.Path(tmpdir) / fov.name
         temp_fov_dir.mkdir()
@@ -52,15 +68,42 @@ async def _create_deepcell_input(fov: SpatialImage, dc_session: httpx.AsyncClien
 
 
 def extract_zip(zip_path: pathlib.Path, save_dir: pathlib.Path) -> None:
+    """Exctracts the SpatialData zip output from Deepcell.
+
+    Parameters
+    ----------
+    zip_path : pathlib.Path
+        The path to the zip file.
+    save_dir : pathlib.Path
+        The directory to save the extracted files to.
+    """
     with ZipFile(zip_path, "r") as zipObj:
         zipObj.extractall(save_dir)
 
 
-def _deepcell_seg_to_spatial_labels(fov_name: str, extracted_seg_dir: pathlib.Path):
+def _deepcell_seg_to_spatial_labels(
+    fov_name: str, extracted_seg_dir: pathlib.Path
+) -> SegmentationImageContainer:
+    """Converts the extracted Deepcell segmentation masks (.tif) to SpatialData label objects.
+
+    Parameters
+    ----------
+    fov_name : str
+        The name of the FOV.
+    extracted_seg_dir : pathlib.Path
+        The path to the directory containing the extracted segmentation masks.
+
+    Returns
+    -------
+    SegmentationImageContainer
+        A container for the segmentation label masks.
+    """
     seg_mask_names: list[pathlib.Path] = ns.natsorted(extracted_seg_dir.glob("*.tif"))
     renamed_seg_masks = {}
     for smn in seg_mask_names:
-        match int(re.search(r"feature_(\d)", smn.stem).group(1)):
+        match int(
+            re.search(r"feature_(\d)", smn.stem).group(1)
+        ):  # look at the number in the filename
             case 0:
                 renamed_seg_masks["whole_cell"] = Labels2DModel.parse(
                     data=imread(fname=smn).squeeze().astype(np.int64),
@@ -77,6 +120,15 @@ def _deepcell_seg_to_spatial_labels(fov_name: str, extracted_seg_dir: pathlib.Pa
 
 
 def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
+    """Saves the SpatialImage object as a tiff file used for uploading to Deepcell.
+
+    Parameters
+    ----------
+    fov : SpatialImage
+        The `SpatialImage` object to save.
+    save_dir : pathlib.Path
+        The directory to save the SpatialImage object to.
+    """
     plugin_args: dict[str, str | dict] = {
         "compression": "zlib",
         "compressionargs": {"level": 7},
@@ -89,7 +141,19 @@ def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
     )
 
 
-def zip_input_files(fov_temp_dir: pathlib.Path):
+def zip_input_files(fov_temp_dir: pathlib.Path) -> pathlib.Path:
+    """Zip the input files to be uploaded to Deepcell.
+
+    Parameters
+    ----------
+    fov_temp_dir : pathlib.Path
+        The temporary directory containing the input files.
+
+    Returns
+    -------
+    pathlib.Path
+        The path to the zip file.
+    """
     # write all files to the zip file
     zip_path = fov_temp_dir.parent / f"{fov_temp_dir.name}.zip"
 
@@ -105,7 +169,23 @@ def zip_input_files(fov_temp_dir: pathlib.Path):
     return zip_path
 
 
-async def upload_to_deepcell(zipped_fov: pathlib.Path, dc_session: httpx.AsyncClient):
+async def upload_to_deepcell(
+    zipped_fov: pathlib.Path, dc_session: httpx.AsyncClient
+) -> pathlib.Path:
+    """Uploads the zipped FOV to Deepcell for segmentation, and collects the output.
+
+    Parameters
+    ----------
+    zipped_fov : pathlib.Path
+        The path to the zipped FOV for input.
+    dc_session : httpx.AsyncClient
+        The httpx session to use for the Deepcell API calls.
+
+    Returns
+    -------
+    pathlib.Path
+        The path to the zip file containing the segmentation masks.
+    """
     upload_url: str = "/api/upload"
     predict_url: str = "/api/predict"
     redis_url: str = "/api/redis"
