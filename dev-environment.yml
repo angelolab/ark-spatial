@@ -1,0 +1,13 @@
+name: ark-spatial-dev
+category: "dev"
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.11
+  - pip
+  - pyqt
+  - napari
+  - hdf5
+  - pip:
+      - .[core, nb, dev, debug, doc, test]

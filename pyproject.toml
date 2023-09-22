@@ -33,6 +33,7 @@ core = [
     "flox",
     "spatialdata",
     "spatialdata-plot",
+    "xbatcher",
     "ray[serve]",
     "torch",
     "hvplot",
@@ -41,11 +42,9 @@ core = [
     "anyio",
     "rich",
 ]
-torch-extensions = [
-    "mosaicml",
-    "captum",
-    "torch_geometric",
-]
+torch-extensions = ["mosaicml", "captum", "torch_geometric"]
+jax = ["jax"]
+napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]
 dev = [
     # CLI for bumping the version number
     "pre-commit",
@@ -150,7 +149,6 @@ ignore = [
 
 [tool.ruff.isort]
 known-first-party = ["ark"]
-
 
 [tool.ruff.pydocstyle]
 convention = "numpy"

@@ -13,7 +13,7 @@ from spatial_image import SpatialImage
 from spatialdata.models import X, Y
 
 
-def signal_extraction_wrapper(func: Callable):
+def signal_extraction_wrapper(func: Callable) -> Callable:
     """Wraps a signal extraction function to allow for partial keyword arguments.
 
     Parameters
