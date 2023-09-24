@@ -29,12 +29,9 @@ def register_spatial_data_accessor(name: str) -> Callable[[str], sd.SpatialData]
 
     Returns
     -------
-    Callable[sd.SpatialData]
+    Callable[[str], sd.SpatialData]
         The accessor.
 
-    See Also
-    --------
-    register_dataset_accessor
     """
     return _register_accessor(name, sd.SpatialData)
 

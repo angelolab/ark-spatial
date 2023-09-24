@@ -4,7 +4,7 @@
 [![Documentation][badge-docs]][link-docs]
 
 [badge-tests]: https://img.shields.io/github/actions/workflow/status/srivarra/ark/test.yaml?branch=main
-[link-tests]: ark/actions/workflows/test.yml
+[//]: # "[link-tests]: .github//workflows/test.yml"
 [badge-docs]: https://img.shields.io/readthedocs/ark
 
 A very interesting piece of code

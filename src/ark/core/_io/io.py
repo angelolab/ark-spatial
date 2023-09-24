@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import NewType
 
 import dask.array as da
 import natsort as ns
@@ -16,12 +15,10 @@ from spatialdata.models import (
 )
 from spatialdata.transformations import Identity
 
-FovName = NewType("FovName", str)
-
 
 @dataclass
 class _fov:
-    name: FovName
+    name: str
     image: SpatialImage
 
 

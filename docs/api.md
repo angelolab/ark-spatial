@@ -1,6 +1,6 @@
 # API
 
-## Core
+## Accessors
 
 ```{eval-rst}
 .. module:: ark.core._accessors
@@ -9,8 +9,8 @@
 .. autosummary::
     :toctree: generated
 
-    _accessors.register_spatial_data_accessor
-    _accessors.SpatialDataAccessor
+    _accessors.accessors.register_spatial_data_accessor
+    _accessors.accessors.SpatialDataAccessor
 ```
 
 ## Indexing and Coordinate Iteration (`.sel`, `.iter_coords`)
@@ -36,9 +36,9 @@
 .. autosummary::
     :toctree: generated
 
-    _io.io._fov
     _io.io.load_cohort
     _io.io.convert_fov
+    _io.io._fov
 ```
 
 ## Segmentation and Marker Quantification(`.segmentation`, `.marker_quantification`)
@@ -52,7 +52,5 @@
 
     _segmentation.segmentation.SegmentationAccessor
     _segmentation.marker_quantification.MarkerQuantificationAccessor
-    _segmentation.utils.deepcell
-    _segmentation.utils.regionprops_extraction
-    _segmentation.utils.signal_extraction
+    _segmentation.utils
 ```

@@ -14,8 +14,8 @@ maintainers = [
     { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" },
 ]
 urls.Documentation = "https://ark.readthedocs.io/"
-urls.Source = "ark"
-urls.Home-page = "ark"
+urls.Source = "https://github.com/srivarra/ark"
+urls.Home-page = "https://github.com/srivarra/ark"
 dependencies = ["ark[core]"]
 
 [project.optional-dependencies]
@@ -48,6 +48,12 @@ dev = [
     # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2",
+    "ark[core]",
+    "ark[nb]",
+    "ark[napari]",
+    "ark[debug]",
+    "ark[test]",
+    "ark[doc]",
 ]
 debug = ["session-info"]
 cuda = [
@@ -72,11 +78,12 @@ doc = [
     "sphinxcontrib-bibtex>=1.0.0",
     "sphinx-autodoc-typehints",
     "sphinxext-opengraph",
-    "scanpydoc",
+    #    "scanpydoc",
     # For notebooks
     "ipykernel",
     "ipython",
     "sphinx-copybutton",
+    "scanpydoc",
 ]
 test = ["pytest", "pytest-cov"]
 
@@ -107,16 +114,16 @@ src = ["src", "tests", "notebooks"]
 line-length = 100
 fixable = ["ALL"]
 select = [
-    "F",      # Errors detected by Pyflakes
-    "E",      # Error detected by Pycodestyle
-    "W",      # Warning detected by Pycodestyle
-    "I",      # isort
-    "D",      # pydocstyle
-    "B",      # flake8-bugbear
-    "TID",    # flake8-tidy-imports
-    "C4",     # flake8-comprehensions
-    "BLE",    # flake8-blind-except
-    "UP",     # pyupgrade
+    "F", # Errors detected by Pyflakes
+    "E", # Error detected by Pycodestyle
+    "W", # Warning detected by Pycodestyle
+    "I", # isort
+    "D", # pydocstyle
+    "B", # flake8-bugbear
+    "TID", # flake8-tidy-imports
+    "C4", # flake8-comprehensions
+    "BLE", # flake8-blind-except
+    "UP", # pyupgrade
     "RUF100", # Report unused noqa directives,
 ]
 ignore = [

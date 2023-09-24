@@ -53,6 +53,8 @@ extensions = [
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
     "sphinx.ext.napoleon",
+    "sphinx.ext.viewcode",
+    "scanpydoc.elegant_typehints",
     "sphinxcontrib.bibtex",
     "sphinx_autodoc_typehints",
     "sphinx.ext.mathjax",
@@ -60,6 +62,7 @@ extensions = [
     "sphinxext.opengraph",
     *[p.stem for p in (HERE / "extensions").glob("*.py")],
 ]
+
 
 autosummary_generate = True
 autodoc_member_order = "groupwise"
@@ -94,6 +97,17 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "anndata": ("https://anndata.readthedocs.io/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "spatialdata": ("https://spatialdata.scverse.org/en/latest/", None),
+    "dask": ("https://docs.dask.org/en/stable/", None),
+    "dask-image": ("https://image.dask.org/en/latest/", None),
+    "xarray": ("https://docs.xarray.dev/en/stable/", None),
+    "flox": ("https://flox.readthedocs.io/en/latest/", None),
+    "napari": ("https://napari.org/stable/", None),
+    "squidpy": ("https://squidpy.readthedocs.io/en/stable/", None),
+    "scanpy": ("https://scanpy.readthedocs.io/en/stable/", None),
+    "xbatcher": ("https://xbatcher.readthedocs.io/en/latest/", None),
+    "ray": ("https://docs.ray.io/en/latest/", None),
+    "torch": ("https://pytorch.org/docs/stable/", None),
 }
 
 # List of patterns, relative to source directory, that match files and
@@ -122,7 +136,11 @@ pygments_style = "default"
 nitpick_ignore = [
     # If building the documentation fails because of a missing link that is outside your control,
     # you can add an exception to this list.
-    #     ("py:class", "igraph.Graph"),
+    ("py:class", "igraph.Graph"),
+    ("py:data", "collections.abc.Callable"),
+    ("py:class", "Path"),
+    ("py:class", "spatial_image.SpatialImage"),
+    ("py:class", "optional"),
 ]
 
 
