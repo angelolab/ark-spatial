@@ -1,4 +1,3 @@
-from collections.abc import Generator
 from dataclasses import dataclass
 from pathlib import Path
 from typing import NewType
@@ -42,10 +41,10 @@ def load_cohort(
 
     Returns
     -------
-    SpatialData
-        SpatialData object containing the cohort.
+    sd.SpatialData
+        sd.SpatialData object containing the cohort.
     """
-    fovs: Generator[Path] = list(cohort_dir.glob("*/"))
+    fovs: list[Path] = list(cohort_dir.glob("*/"))
 
     spatial_data = sd.SpatialData()
     with WorkerPool(n_jobs=None, shared_objects=array_type) as pool:

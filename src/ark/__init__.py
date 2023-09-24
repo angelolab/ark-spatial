@@ -12,8 +12,8 @@ __version__ = version("ark")
 
 
 # Set the local cluster
-# client = Client()
-# address = client.scheduler.address
+client = Client()
+address = client.scheduler.address
 
 # Set ray as the default scheduler for dask
-# enable_dask_on_ray()
+enable_dask_on_ray()

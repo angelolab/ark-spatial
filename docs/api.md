@@ -1,38 +1,58 @@
 # API
 
-## Preprocessing
+## Core
 
 ```{eval-rst}
-.. module:: ark.pp
-.. currentmodule:: ark
+.. module:: ark.core._accessors
+.. currentmodule:: ark.core
 
 .. autosummary::
     :toctree: generated
 
-    pp.basic_preproc
+    _accessors.register_spatial_data_accessor
+    _accessors.SpatialDataAccessor
 ```
 
-## Tools
+## Indexing and Coordinate Iteration (`.sel`, `.iter_coords`)
 
 ```{eval-rst}
-.. module:: ark.tl
-.. currentmodule:: ark
+.. module:: ark.core._indexing
+.. currentmodule:: ark.core
 
 .. autosummary::
     :toctree: generated
 
-    tl.basic_tool
+    _indexing.indexing.IndexingAccessor
+    _indexing.indexing.IteratorAccessor
+    _indexing.utils
 ```
 
-## Plotting
+## IO
 
 ```{eval-rst}
-.. module:: ark.pl
-.. currentmodule:: ark
+.. module:: ark.core._io
+.. currentmodule:: ark.core
 
 .. autosummary::
     :toctree: generated
 
-    pl.basic_plot
-    pl.BasicClass
+    _io.io._fov
+    _io.io.load_cohort
+    _io.io.convert_fov
+```
+
+## Segmentation and Marker Quantification(`.segmentation`, `.marker_quantification`)
+
+```{eval-rst}
+.. module:: ark.core._segmentation
+.. currentmodule:: ark.core
+
+.. autosummary::
+    :toctree: generated
+
+    _segmentation.segmentation.SegmentationAccessor
+    _segmentation.marker_quantification.MarkerQuantificationAccessor
+    _segmentation.utils.deepcell
+    _segmentation.utils.regionprops_extraction
+    _segmentation.utils.signal_extraction
 ```

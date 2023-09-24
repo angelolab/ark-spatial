@@ -241,7 +241,7 @@ class IndexingAccessor(SpatialDataAccessor):
 
 
 @register_spatial_data_accessor("iter_coords")
-class ArkIteratorAccessor(SpatialDataAccessor):
+class IteratorAccessor(SpatialDataAccessor):
     """An accessor used for iterating over coordinates in a `SpatialData` object sorted by natsort.
 
     Excludes the "global" coordinate system.
