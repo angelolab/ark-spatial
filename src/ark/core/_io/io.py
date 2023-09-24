@@ -86,7 +86,6 @@ def convert_fov(shared_objects: str, fov: Path) -> _fov:
         c_coords=channels,
         transformations={
             fov.stem: Identity(),  # Per FOV coordinate system
-            "global": Identity(),  # Global coordinate system
         },
     )
 

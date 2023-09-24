@@ -1,10 +1,10 @@
 from concurrent.futures import as_completed
 
 import httpx
+import spatial_image as si
 import spatialdata as sd
 import xarray as xr
 from anyio import start_blocking_portal
-from spatial_image import SpatialImage
 from spatialdata.models import C, Labels2DModel, X, Y
 from spatialdata.transformations import Identity
 from tqdm.auto import tqdm
@@ -21,6 +21,12 @@ DEEPCELL_MAX_Y_PIXELS = 2048
 
 @register_spatial_data_accessor("segmentation")
 class SegmentationAccessor(SpatialDataAccessor):
+    _nuclear_markers: list[str] | None
+
+    def __init__(self, sdata: sd.SpatialData):
+        super().__init__(sdata)
+        self._nuclear_markers = None
+
     @property
     def nuclear_markers(self) -> list[str]:
         """The nuclear markers used for segmentation.
@@ -47,7 +53,7 @@ class SegmentationAccessor(SpatialDataAccessor):
     def nuclear_markers(self, value: list[str]) -> None:
         """Sets the nuclear markers used for segmentation.
 
-        These should be channel names in the `SpatialImage` object.
+        These should be channel names in the `si.SpatialImage` object.
 
         Parameters
         ----------
@@ -60,7 +66,7 @@ class SegmentationAccessor(SpatialDataAccessor):
     def membrane_markers(self, value: list[str]) -> None:
         """Sets the membrane markers used for segmentation.
 
-        These should be channel names in the `SpatialImage` object.
+        These should be channel names in the `si.SpatialImage` object.
 
         Parameters
         ----------
@@ -131,25 +137,27 @@ class SegmentationAccessor(SpatialDataAccessor):
                                 name=f"{sic.fov_name}_{seg_type}", labels=seg_label
                             )
 
-    def _sum_markers(self, fov_name: str, fov_sd: sd.SpatialData) -> SpatialImage:
-        """Performs groupby-reduce on the `SpatialImage` object to sum the nuclear and membrane markers.
+    def _sum_markers(self, fov_name: str, fov_sd: sd.SpatialData) -> si.SpatialImage:
+        """Performs groupby-reduce on the `si.SpatialImage` object to sum the nuclear and membrane markers.
 
         Parameters
         ----------
         fov_name : str
-            The name of the field of view to sum channels for for.
+            The name of the field of view to sum channels for.
         fov_sd : sd.SpatialData
             The `SpatialData` object containing the field of view.
 
         Returns
         -------
-        SpatialImage
-            A `SpatialImage` object containing the summed nuclear and / or membrane markers.
+        si.SpatialImage
+            A `si.SpatialImage` object containing the summed nuclear and / or membrane markers.
         """
-        fov_si: SpatialImage = fov_sd.images[fov_name]
+        fov_si: si.SpatialImage = fov_sd.images[fov_name]
 
         labels = xr.where(fov_si.c.isin(self.nuclear_markers), "nucs", "_")
         labels[fov_si.c.isin(self.membrane_markers)] = "mems"
+        # return Image2DModel.parse()
+
         return fov_si.groupby(labels, squeeze=False).sum().drop_sel({C: "_"})
 
     async def _run_per_fov_deepcell(
@@ -171,7 +179,7 @@ class SegmentationAccessor(SpatialDataAccessor):
         SegmentationImageContainer
             A container for the segmentation label masks.
         """
-        fov_si: SpatialImage = self._sum_markers(fov_name, fov_sd)
+        fov_si: si.SpatialImage = self._sum_markers(fov_name, fov_sd)
         async with httpx.AsyncClient(base_url=DEEPCELL_URL) as dc_session:
             segmentation_images: SegmentationImageContainer = await _create_deepcell_input(
                 fov_si, dc_session
@@ -206,7 +214,7 @@ class SegmentationAccessor(SpatialDataAccessor):
         self._set_markers(nucs, mems)
 
         for fov_name, fov_sd in tqdm(self.sdata.iter_coords):
-            fov_si: SpatialImage = self._sum_markers(fov_name, fov_sd)
+            fov_si: si.SpatialImage = self._sum_markers(fov_name, fov_sd)
             mask, _ = cyto2_model.eval(
                 x=fov_si.data,
                 channel_axis=0,

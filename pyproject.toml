@@ -36,13 +36,12 @@ core = [
     "xbatcher",
     "ray[serve]",
     "torch",
-    "hvplot",
     "tqdm",
     "httpx",
     "anyio",
     "rich",
 ]
-torch-extensions = ["mosaicml", "captum", "torch_geometric"]
+torch-extensions = ["captum", "torch_geometric"]
 jax = ["jax"]
 napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]
 dev = [

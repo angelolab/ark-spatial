@@ -254,7 +254,7 @@ class ArkIteratorAccessor(SpatialDataAccessor):
     Yields
     ------
     sd.SpatialData
-        The spatial data object for the filtered by the the current coordiante.
+        The spatial data object for the filtered by the current coordinate.
     """
 
     @property
@@ -266,6 +266,19 @@ class ArkIteratorAccessor(SpatialDataAccessor):
     def __len__(self) -> int:
         return len(self.fovs)
 
+    #  TODO: implement filtering by regex
+    # def __call__(self, fovs: re.Pattern[str] | str | list[str] = None, filter_table: bool = True, include_global: bool = False) -> Generator[tuple[str, sd.SpatialData]]:
+    #     if isinstance(fovs, (str, re.Pattern)) and fovs not in self.fovs:
+    #         try:
+    #             fovs = re.compile(fovs)
+    #
+    #         except re.error as e:
+    #             raise e(msg = f"Invalid regular expression {fovs}")
+    #
+    #     match fovs:
+    #         case None:
+    #             coords = self.fovs
+
     def __iter__(self) -> Generator[tuple[str, sd.SpatialData]]:
         for fov in self.fovs:
-            yield (fov, self.sdata.sel(fov))
+            yield fov, self.sdata.sel(fov)

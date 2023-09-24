@@ -61,27 +61,27 @@ DEFAULT_REGIONPROPS: list[str] = [
 def regionprops_df(
     labels: ArrayLike,
     intensity: ArrayLike | None = None,
-    properties: tuple[str, ...] = REGIONPROPS_BASE,
+    properties: list[str, ...] = REGIONPROPS_BASE,
     derived_properties: Mapping[str, ArrayLike] = {},
     other_cols=None,
 ) -> pd.DataFrame:
-    """Computes the regionprops of each labelled region in a segmentaiton image.
+    """Computes the regionprops of each labelled region in a segmentation image.
 
     Lightly wrap skimage.measure.regionprops_table to return a DataFrame.
-    Also allow for the addition of extra columns, used in reginprops to track
-    non core dimensions of input.
+    Also allow for the addition of extra columns, used in regionprops to track
+    non-core dimensions of input.
 
     Parameters
     ----------
     labels : ArrayLike
         Array like container of labelled regions. Background is assumed to have a value of 0.
     intensity : ArrayLike | None, optional
-        Optional intensity field to compute weighted region proeprties from, by default None
+        Optional intensity field to compute weighted region properties from, by default None
     properties : tuple[str, ...], optional
         Properties to compute for each region. Computes all properties which return fixed sized outputs. If provided
-        an intensity image, corresponding weighted proeprteis will also be computed by default, by default REGIONPROPS_BASE
+        an intensity image, corresponding weighted properties will also be computed by default, by default REGIONPROPS_BASE
     derived_properties : Mapping[str, ArrayLike], optional
-        A list of custom region properties which are calculated from the orginal set of region properties, by default {}
+        A list of custom region properties which are calculated from the original set of region properties, by default {}
     other_cols : _type_, optional
         Other columns in the DataFrame, by default None
 
@@ -114,9 +114,9 @@ def regionprops_df(
 def regionprops(
     labels: SpatialImage,
     intensity: SpatialImage | None = None,
-    properties: tuple[str, ...] = REGIONPROPS_BASE,
-    derived_properties: tuple[str, ...] = REGIONPROPS_SINGLE_COMP,
-    core_dims: tuple[int | str, ...] | None = None,
+    properties: list[str, ...] = REGIONPROPS_BASE,
+    derived_properties: list[str, ...] = REGIONPROPS_SINGLE_COMP,
+    core_dims: list[int | str, ...] | None = None,
 ) -> dd.DataFrame:
     """
     Creates the delayed DataFrame and prepares the Dask execution graph for lazy execution.
@@ -143,7 +143,7 @@ def regionprops(
     Returns
     -------
     regionprops_df : dask.DataFrame
-        Lazily constructed dataframe containing columns for each specifified
+        Lazily constructed dataframe containing columns for each specified
         property.
     """
     d_regionprops = delayed(regionprops_df)
@@ -155,20 +155,18 @@ def regionprops(
 
     meta = _get_meta(loop_sizes, properties, derived_properties)
 
-    labels_arr, intensity_arr = (si.data for si in [labels, intensity])
-
     all_props = []
 
     for dims in product(*(range(v) for v in loop_sizes.values())):
         other_cols = dict(zip(loop_sizes.keys(), dims, strict=True))
 
-        if intensity_arr is not None:
+        if intensity is not None:
             frame_props = d_regionprops(
-                labels_arr[dims], intensity_arr[dims], properties, derived_properties, other_cols
+                labels.data[dims], intensity.data[dims], properties, derived_properties, other_cols
             )
         else:
             frame_props = d_regionprops(
-                labels_arr[dims], None, properties, derived_properties, other_cols
+                labels.data[dims], None, properties, derived_properties, other_cols
             )
 
         all_props.append(frame_props)
@@ -353,7 +351,7 @@ def major_minor_axis_ratio(axis_minor_length: ArrayLike, axis_major_length: Arra
 
 @rp_table_wrapper
 def perim_square_over_area(perimeter: ArrayLike, area: ArrayLike) -> ArrayLike:
-    """Calculates the perimiter squared divided by the area of the region.
+    """Calculates the perimeter squared divided by the area of the region.
 
     Parameters
     ----------
@@ -365,7 +363,7 @@ def perim_square_over_area(perimeter: ArrayLike, area: ArrayLike) -> ArrayLike:
     Returns
     -------
     ArrayLike
-        The perimiter squared divided by the area of the region.
+        The perimeter squared divided by the area of the region.
     """
     psoa: ArrayLike = perimeter**2 / area
     return psoa
@@ -484,7 +482,7 @@ def num_concavities(image: list[ArrayLike], image_convex: list[ArrayLike], **kwa
     Returns
     -------
     ArrayLike
-        The number of concavities per region, thresholded.
+        The number of concavities per region, threshold.
     """
     n_concavities: ArrayLike = np.zeros_like(image, dtype=np.int64)
     for i, (im, im_c) in enumerate(zip(image, image_convex, strict=True)):

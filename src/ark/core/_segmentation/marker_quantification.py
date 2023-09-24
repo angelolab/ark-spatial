@@ -119,7 +119,7 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
         -------
         sd.SpatialData
             The `SpatialData` object for a single fov, with the `AnnData` `spatialdata.models.Table` property
-            containing the marker counts aggregrated by sum.
+            containing the marker counts aggregated by sum.
         """
         agg_val: sd.SpatialData = self.sdata.aggregate(
             values=fov_id,
@@ -155,7 +155,7 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
 
             fov_sd_ct.append(self._compute_fov_table(fov_sd, rp_df))
 
-        (q,) = compute(fov_sd_ct)
+        (q,) = compute(fov_sd_ct, scheduler="processes")
         cell_table: AnnData = sd.concatenate([*q]).table
         # Make the obs index contain all unique values
         cell_table.obs_names_make_unique()
