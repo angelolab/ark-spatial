@@ -52,6 +52,7 @@ extensions = [
     "sphinx.ext.autodoc",
     "sphinx.ext.intersphinx",
     "sphinx.ext.autosummary",
+    "sphinx.ext.autosectionlabel",
     "sphinx.ext.napoleon",
     "sphinx.ext.viewcode",
     "scanpydoc.elegant_typehints",
@@ -86,6 +87,7 @@ nb_output_stderr = "remove"
 nb_execution_mode = "off"
 nb_merge_streams = True
 typehints_defaults = "braces"
+autosectionlabel_prefix_document = True
 
 source_suffix = {
     ".rst": "restructuredtext",
@@ -129,6 +131,7 @@ html_theme_options = {
     "repository_url": repository_url,
     "use_repository_button": True,
     "path_to_docs": "docs/",
+    "collapse_navigation": True,
 }
 
 pygments_style = "default"

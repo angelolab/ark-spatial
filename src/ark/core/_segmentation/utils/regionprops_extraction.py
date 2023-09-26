@@ -58,7 +58,8 @@ DEFAULT_REGIONPROPS: list[str] = [
 ]
 
 
-def regionprops_df(
+@delayed
+def compute_region_props_df(
     labels: ArrayLike,
     intensity: ArrayLike | None = None,
     properties: list[str, ...] = REGIONPROPS_BASE,
@@ -129,7 +130,7 @@ def regionprops(
     labels : SpatialImage
         The SpatialImage of labelled regions. Background is assumed to have a value of 0.
     intensity : SpatialImage | None, optional
-        A SpatilaImage of the intensity field to compute weighted region proeprties from, by default None
+        A SpatialImage of the intensity field to compute weighted region proeprties from, by default None
     properties : tuple[str, ...], optional
         Properties to compute for each region. Computes all properties which return fixed sized outputs. If provided
         an intensity image, corresponding weighted proeprteis will also be computed by default, by default REGIONPROPS_BASE
@@ -146,7 +147,7 @@ def regionprops(
         Lazily constructed dataframe containing columns for each specified
         property.
     """
-    d_regionprops = delayed(regionprops_df)
+    # d_regionprops = delayed(regionprops_df)
 
     loop_sizes = _get_loop_sizes(labels, core_dims)
 
@@ -161,11 +162,11 @@ def regionprops(
         other_cols = dict(zip(loop_sizes.keys(), dims, strict=True))
 
         if intensity is not None:
-            frame_props = d_regionprops(
+            frame_props = compute_region_props_df(
                 labels.data[dims], intensity.data[dims], properties, derived_properties, other_cols
             )
         else:
-            frame_props = d_regionprops(
+            frame_props = compute_region_props_df(
                 labels.data[dims], None, properties, derived_properties, other_cols
             )
 
@@ -519,7 +520,9 @@ def _diff_img_concavities(diff_img: ArrayLike, **kwargs) -> np.int64:
     """
     labeled_diff_image = label(diff_img, connectivity=1)
 
-    hull_df: pd.DataFrame = regionprops_df(labeled_diff_image, properties=["area", "perimeter"])
+    hull_df: pd.DataFrame = compute_region_props_df(
+        labeled_diff_image, properties=["area", "perimeter"]
+    )
     hull_df["compactness"] = np.square(hull_df["perimeter"]) / hull_df["area"]
 
     small_idx_area_cutoff = kwargs.get("small_idx_area_cutoff", 10)

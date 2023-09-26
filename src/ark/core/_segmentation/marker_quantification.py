@@ -4,7 +4,7 @@ from itertools import chain
 import dask.dataframe as dd
 import spatialdata as sd
 from anndata import AnnData
-from dask import compute, delayed
+from dask import compute, delayed, persist
 from spatial_image import SpatialImage
 from spatialdata.models import X, Y
 
@@ -20,7 +20,7 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
     _derived_props: list[str] = REGIONPROPS_SINGLE_COMP.copy()
 
     @property
-    def default_region_props(self) -> list[str]:
+    def region_props(self) -> list[str]:
         """Returns the default region properties to extract.
 
         Returns
@@ -30,7 +30,7 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
         """
         return self._region_props
 
-    @default_region_props.setter
+    @region_props.setter
     def region_props(self, value: Iterable[str]) -> None:
         """Sets the default region properties to extract.
 
@@ -61,7 +61,6 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
         fov_sd.table.obsm["spatial"] = fov_sd.table.obs[
             [f"{X}_centroid", f"{Y}_centroid"]
         ].to_numpy()
-
         return fov_sd
 
     @delayed
@@ -98,6 +97,12 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
         )
         rp_df["region"] = f"{fov_id}_whole_cell"
         rp_df["region"] = rp_df["region"].astype("category")
+        # Make the index of `obs` unique
+        # NOTE: Doesn't work as
+        # `pandas.core.arrays.string_arrow.ArrowStringArray`
+        # cannot be converted to into `zarr.hierarchy.Group`
+        # rp_df.index = f"{fov_id}_" + rp_df.index.astype(str)
+        # rp_df.index = rp_df.index.astype(object)
         return rp_df
 
     @delayed
@@ -155,8 +160,9 @@ class MarkerQuantificationAccessor(SpatialDataAccessor):
 
             fov_sd_ct.append(self._compute_fov_table(fov_sd, rp_df))
 
-        (q,) = compute(fov_sd_ct, scheduler="processes")
-        cell_table: AnnData = sd.concatenate([*q]).table
-        # Make the obs index contain all unique values
-        cell_table.obs_names_make_unique()
+        q = persist(*fov_sd_ct)  # trigger computation in the background
+        q = list(compute(*q))
+
+        cell_table: AnnData = sd.concatenate(q).table
+        cell_table.obs_names_make_unique(join="_")
         self.sdata.table = cell_table
