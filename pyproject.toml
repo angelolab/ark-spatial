@@ -85,12 +85,11 @@ doc = [
     "sphinxcontrib-bibtex>=1.0.0",
     "sphinx-autodoc-typehints",
     "sphinxext-opengraph",
-    #    "scanpydoc",
+    "scanpydoc",
     # For notebooks
     "ipykernel",
     "ipython",
     "sphinx-copybutton",
-    "scanpydoc",
 ]
 test = ["pytest", "pytest-cov"]
 

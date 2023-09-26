@@ -1,7 +1,6 @@
 # Misc Applications
 
-```{eval-rst}
-toctree::
+```{toctree}
 :numbered:
 :titlesonly:
 :maxdepth: 1
