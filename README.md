@@ -7,34 +7,35 @@
 [//]: # "[link-tests]: .github//workflows/test.yml"
 [badge-docs]: https://img.shields.io/readthedocs/ark-spatial
 
-A very interesting piece of code
+An early development implementation of [`angelolab/ark-analysis`](https://github.com/angelolab/ark-analysis) using [`scverse/spatialdata`](https://github.com/scverse/spatialdata).
 
 ## Getting started
 
 Please refer to the [documentation][link-docs]. In particular, the
 
 -   [API documentation][link-api].
+-   [Notebooks][link-api]
 
 ## Installation
 
 You need to have Python 3.10 or newer installed on your system. If you don't have
 Python installed, we recommend installing [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
+There are a few ways to install `ark-spatial`.
 
-[//]: # "There are several alternative options to install ark-spatial:"
-[//]: #
-[//]: # "<!--"
-[//]: # "1) Install the latest release of `ark-spatial` from `PyPI <https://pypi.org/project/ark-spatial/>`_:"
-[//]: #
-[//]: # "```bash"
-[//]: # "pip install ark-spatial"
-[//]: # "```"
-[//]: # "-->"
 
 1. Install the latest development version:
+    ```shell
+    pip install git+https://github.com/angelolab/ark-spatial.git@main
+    ```
+2. Install using conda:
+    ```shell
+    conda env create -f environment.yml
+    ```
 
-```shell
-pip install git+https://github.com/angelolab/ark-spatial.git@main
-```
+3. Install the development environment with conda:
+    ```shell
+    conda env create -f dev-environment.yml
+    ```
 
 ## Release notes
 
@@ -42,7 +43,7 @@ See the [changelog][changelog].
 
 ## Contact
 
-For questions and help requests, you can reach out in the [scverse discourse][scverse-discourse].
+For questions and help requests, you can reach out in the [github discussions][ark-spatial-github-discussions].
 If you found a bug, please use the [issue tracker][issue-tracker].
 
 ## Citation
