@@ -9,12 +9,16 @@ description = "A very interesting piece of code"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
-authors = [{ name = "Sricharan Reddy Varra" }]
-maintainers = [
-    { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" },
+authors = [
     { name = "Noah Frey Greenwald", email = "noahfg@stanford.edu" },
     { name = "Alex Kong", email = "alkong@stanford.edu" },
-    { name = "Cami Laura Sowers", email = "csowers@stanford.edu" }
+    { name = "Cami Laura Sowers", email = "csowers@stanford.edu" },
+    { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" }, ]
+maintainers = [
+    { name = "Noah Frey Greenwald", email = "noahfg@stanford.edu" },
+    { name = "Alex Kong", email = "alkong@stanford.edu" },
+    { name = "Cami Laura Sowers", email = "csowers@stanford.edu" },
+    { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" },
 ]
 urls.Documentation = "https://ark-spatial.readthedocs.io/"
 urls.Source = "https://github.com/angelolab/ark-spatial"
