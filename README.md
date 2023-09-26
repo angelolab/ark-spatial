@@ -22,12 +22,12 @@ You need to have Python 3.10 or newer installed on your system. If you don't hav
 Python installed, we recommend installing [Mambaforge](https://github.com/conda-forge/miniforge#mambaforge).
 There are a few ways to install `ark-spatial`.
 
-
 1. Install the latest development version:
     ```shell
     pip install git+https://github.com/angelolab/ark-spatial.git@main
     ```
 2. Install using conda:
+
     ```shell
     conda env create -f environment.yml
     ```

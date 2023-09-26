@@ -179,6 +179,7 @@ open _build/html/index.html
 
 Hot reloading builds the documentation once and then watches for changes in the source files.
 If a change is detected, it rebuilds the documentation. This is useful during active development.
+
 ```shell
 cd docs
 make livehtml
