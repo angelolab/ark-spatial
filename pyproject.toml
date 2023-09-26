@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = ["hatchling", "hatch-vcs"]
 
 [project]
-name = "ark-spatial"
+name = "ark"
 dynamic = ["version"]
 description = "Multiplexed Image Analysis"
 readme = "README.md"
@@ -19,11 +19,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Image Processing"
 ]
 
-authors = [
-    { name = "Noah Frey Greenwald", email = "noahfg@stanford.edu" },
-    { name = "Alex Kong", email = "alkong@stanford.edu" },
-    { name = "Cami Laura Sowers", email = "csowers@stanford.edu" },
-    { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" }, ]
+authors = [{name = "Angelo Lab"}]
 maintainers = [
     { name = "Noah Frey Greenwald", email = "noahfg@stanford.edu" },
     { name = "Alex Kong", email = "alkong@stanford.edu" },
@@ -33,7 +29,7 @@ maintainers = [
 urls.Documentation = "https://ark-spatial.readthedocs.io/"
 urls.Source = "https://github.com/angelolab/ark-spatial"
 urls.Home-page = "https://github.com/angelolab/ark-spatial"
-dependencies = ["ark-spatial[core]"]
+dependencies = ["ark[core]"]
 
 [project.optional-dependencies]
 core = [
@@ -63,12 +59,12 @@ dev = [
     # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2",
-    "ark-spatial[core]",
-    "ark-spatial[nb]",
-    "ark-spatial[napari]",
-    "ark-spatial[debug]",
-    "ark-spatial[test]",
-    "ark-spatial[doc]",
+    "ark[core]",
+    "ark[nb]",
+    "ark[napari]",
+    "ark[debug]",
+    "ark[test]",
+    "ark[doc]",
 ]
 jax = ["jax"]
 napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]

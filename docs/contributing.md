@@ -12,9 +12,9 @@ to the [scanpy developer guide][].
 In addition to the packages needed to _use_ this package, you need additional python packages to _run tests_ and _build
 the documentation_. It's easy to install them using `pip`:
 
-```bash
+```shell
 cd ark
-pip install -e ".[dev,test,doc]"
+pip install -e ".[dev]"
 ```
 
 ## Code-style
@@ -25,7 +25,7 @@ a full list of checks enabled for this repository.
 
 To enable pre-commit locally, simply run
 
-```bash
+```shell
 pre-commit install
 ```
 
@@ -36,7 +36,7 @@ pushing changes to GitHub it will automatically commit fixes to your pull reques
 
 If pre-commit.ci added a commit on a branch you still have been working on locally, simply use
 
-```bash
+```shell
 git pull --rebase
 ```
 
@@ -52,7 +52,7 @@ and [prettier][prettier-editors].
 ## Writing tests
 
 ```{note}
-Remember to first install the package with `pip install '-e[dev,test]'`
+Remember to first install the package with `pip install '-e .[dev]'`
 ```
 
 This package uses the [pytest][] for automated testing. Please [write tests][scanpy-test-docs] for every function added
@@ -61,7 +61,7 @@ to the package.
 Most IDEs integrate with pytest and provide a GUI to run tests. Alternatively, you can run all tests from the
 command line by executing
 
-```bash
+```shell
 pytest
 ```
 
@@ -98,7 +98,7 @@ to publish the created tag on GitHub. Alternatively, it is possible to create a 
 This section explains how releases can be created manually purely for educational purposes. Experienced developers may skip this section.
 Python packages are not distributed as source code, but as _distributions_. The most common distribution format is the so-called _wheel_. To build a _wheel_, run
 
-```bash
+```shell
 python -m build
 ```
 
@@ -106,13 +106,13 @@ This command creates a _source archive_ and a _wheel_, which are required for pu
 
 Before uploading them to [PyPI][] you can check that your _distribution_ is valid by running:
 
-```bash
+```shell
 twine check dist/*
 ```
 
 and finally publishing it with:
 
-```bash
+```shell
 twine upload dist/*
 ```
 
@@ -165,11 +165,26 @@ repository.
 
 #### Building the docs locally
 
-```bash
+**Static Generation**
+
+Static generation builds the documentation once.
+
+```shell
 cd docs
 make html
 open _build/html/index.html
 ```
+
+**Hot reloading / Watch mode**
+
+Hot reloading builds the documentation once and then watches for changes in the source files.
+If a change is detected, it rebuilds the documentation. This is useful during active development.
+```shell
+cd docs
+make livehtml
+```
+
+This should spin up a local server. Open the link in your browser.
 
 <!-- Links -->
 
