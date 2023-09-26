@@ -27,3 +27,6 @@ __pycache__/
 /.idea/
 /.vscode/
 /.history/
+
+# Local Python Development
+.python-version
