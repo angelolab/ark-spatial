@@ -12,10 +12,13 @@ license = { file = "LICENSE" }
 authors = [{ name = "Sricharan Reddy Varra" }]
 maintainers = [
     { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" },
+    { name = "Noah Frey Greenwald", email = "noahfg@stanford.edu" },
+    { name = "Alex Kong", email = "alkong@stanford.edu" },
+    { name = "Cami Laura Sowers", email = "csowers@stanford.edu" }
 ]
 urls.Documentation = "https://ark-spatial.readthedocs.io/"
-urls.Source = "https://github.com/srivarra/ark-spatial"
-urls.Home-page = "https://github.com/srivarra/ark-spatial"
+urls.Source = "https://github.com/angelolab/ark-spatial"
+urls.Home-page = "https://github.com/angelolab/ark-spatial"
 dependencies = ["ark-spatial[core]"]
 
 [project.optional-dependencies]
