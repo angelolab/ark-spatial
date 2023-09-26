@@ -3,7 +3,7 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [project]
-name = "ark"
+name = "ark-spatial"
 version = "0.0.1"
 description = "A very interesting piece of code"
 readme = "README.md"
@@ -13,10 +13,10 @@ authors = [{ name = "Sricharan Reddy Varra" }]
 maintainers = [
     { name = "Sricharan Reddy Varra", email = "srivarra@stanford.edu" },
 ]
-urls.Documentation = "https://ark.readthedocs.io/"
-urls.Source = "https://github.com/srivarra/ark"
-urls.Home-page = "https://github.com/srivarra/ark"
-dependencies = ["ark[core]"]
+urls.Documentation = "https://ark-spatial.readthedocs.io/"
+urls.Source = "https://github.com/srivarra/ark-spatial"
+urls.Home-page = "https://github.com/srivarra/ark-spatial"
+dependencies = ["ark-spatial[core]"]
 
 [project.optional-dependencies]
 core = [
@@ -42,19 +42,19 @@ core = [
     "rich",
 ]
 torch-extensions = ["captum", "torch_geometric"]
-jax = ["jax"]
-napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]
 dev = [
     # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2",
-    "ark[core]",
-    "ark[nb]",
-    "ark[napari]",
-    "ark[debug]",
-    "ark[test]",
-    "ark[doc]",
+    "ark-spatial[core]",
+    "ark-spatial[nb]",
+    "ark-spatial[napari]",
+    "ark-spatial[debug]",
+    "ark-spatial[test]",
+    "ark-spatial[doc]",
 ]
+jax = ["jax"]
+napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]
 debug = ["session-info"]
 cuda = [
     "cupy-cuda12x",
@@ -94,7 +94,7 @@ test = ["pytest", "pytest-cov"]
 metadata.allow-direct-references = true
 
 [tool.coverage.run]
-source = ["ark"]
+source = ["ark-spatial"]
 omit = ["**/test_*.py"]
 
 [tool.pytest.ini_options]
@@ -154,7 +154,7 @@ ignore = [
 ]
 
 [tool.ruff.isort]
-known-first-party = ["ark"]
+known-first-party = ["ark-spatial"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy"
