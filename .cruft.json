@@ -6,7 +6,7 @@
     "cookiecutter": {
       "project_name": "ark-spatial",
       "package_name": "ark",
-      "project_description": "A very interesting piece of code",
+      "project_description": "Multiplexed Image Analysis",
       "author_full_name": "Sricharan Reddy Varra",
       "author_email": "srivarra@stanford.edu",
       "github_user": "srivarra",

@@ -5,7 +5,7 @@ requires = ["hatchling", "hatch-vcs"]
 [project]
 name = "ark-spatial"
 dynamic = ["version"]
-description = "A very interesting piece of code"
+description = "Multiplexed Image Analysis"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { file = "LICENSE" }
