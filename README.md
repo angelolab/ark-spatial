@@ -11,10 +11,10 @@ An early development implementation of [`angelolab/ark-analysis`](https://github
 
 ## Getting started
 
-Please refer to the [documentation][https://ark-spatial.readthedocs.io/]. In particular, the
+Please refer to the [documentation](https://ark-spatial.readthedocs.io/). In particular, the
 
--   [API documentation][https://ark-spatial.readthedocs.io/en/latest/api.html].
--   [Notebooks][https://ark-spatial.readthedocs.io/en/latest/notebooks.html]
+-   [API documentation](https://ark-spatial.readthedocs.io/en/latest/api.html).
+-   [Notebooks](https://ark-spatial.readthedocs.io/en/latest/notebooks.html).
 
 ## Installation
 
