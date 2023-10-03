@@ -52,5 +52,34 @@
 
     _segmentation.segmentation.SegmentationAccessor
     _segmentation.marker_quantification.MarkerQuantificationAccessor
-    _segmentation.utils
+
+    _segmentation.utils.deepcell.SegmentationImageContainer
+    _segmentation.utils.deepcell._create_deepcell_input
+    _segmentation.utils.deepcell.extract_zip
+    _segmentation.utils.deepcell._deepcell_seg_to_spatial_labels
+    _segmentation.utils.deepcell.spatial_data_to_fov
+    _segmentation.utils.deepcell.zip_input_files
+    _segmentation.utils.deepcell.upload_to_deepcell
+
+    _segmentation.utils.regionprops_extraction.REGIONPROPS_BASE
+    _segmentation.utils.regionprops_extraction.REGIONPROPS_BASE_TEMPORARY
+    _segmentation.utils.regionprops_extraction.REGIONPROPS_SINGLE_COMP
+    _segmentation.utils.regionprops_extraction.REGIONPROPS_MULTI_COMP
+    _segmentation.utils.regionprops_extraction.DEFAULT_REGIONPROPS
+    _segmentation.utils.regionprops_extraction.compute_region_props_df
+    _segmentation.utils.regionprops_extraction.regionprops
+    _segmentation.utils.regionprops_extraction._get_meta
+    _segmentation.utils.regionprops_extraction._get_loop_sizes
+    _segmentation.utils.regionprops_extraction._get_pos_core_dims
+    _segmentation.utils.regionprops_extraction.rp_table_wrapper
+    _segmentation.utils.regionprops_extraction.major_minor_axis_ratio
+    _segmentation.utils.regionprops_extraction.perim_square_over_area
+    _segmentation.utils.regionprops_extraction.major_axis_equiv_diam_ratio
+    _segmentation.utils.regionprops_extraction.convex_hull_equiv_diam_ratio
+    _segmentation.utils.regionprops_extraction.centroid_diff
+    _segmentation.utils.regionprops_extraction.num_concavities
+    _segmentation.utils.regionprops_extraction._diff_img_concavities
+    _segmentation.utils.regionprops_extraction.nc_ratio
+    _segmentation.utils.regionprops_extraction.REGIONPROPS_FUNCTIONS
+
 ```

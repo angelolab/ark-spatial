@@ -19,7 +19,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Image Processing"
 ]
 
-authors = [{name = "Angelo Lab"}]
+authors = [{ name = "Angelo Lab" }]
 maintainers = [
     { name = "Noah Frey Greenwald", email = "noahfg@stanford.edu" },
     { name = "Alex Kong", email = "alkong@stanford.edu" },
@@ -66,10 +66,18 @@ dev = [
     "ark[test]",
     "ark[doc]",
 ]
-jax = ["jax"]
+jax-cuda = [
+    "jax[cuda12_pip]",
+
+]
+jax-metal = [
+    "ml-dtypes==0.2.0 ; platform_system == 'Darwin'",
+    "jax-metal ; platform_system == 'Darwin'",
+]
+
 napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]
 debug = ["session-info"]
-cuda = [
+cuda-rapids = [
     "cupy-cuda12x",
     "cudf-cu12",
     "dask-cudf-cu12",
@@ -82,7 +90,7 @@ cuda = [
     "optuna",
     "rapids-singlecell[rapids]",
 ]
-nb = ["ipywidgets", "jupyterlab"]
+nb = ["ipywidgets", "jupyterlab", "notebook"]
 doc = [
     "docutils>=0.8,!=0.18.*,!=0.19.*",
     "sphinx>=4",
@@ -169,7 +177,7 @@ ignore = [
 ]
 
 [tool.ruff.isort]
-known-first-party = ["ark-spatial"]
+known-first-party = ["ark"]
 
 [tool.ruff.pydocstyle]
 convention = "numpy"

@@ -156,9 +156,8 @@ class SegmentationAccessor(SpatialDataAccessor):
 
         labels = xr.where(fov_si.c.isin(self.nuclear_markers), "nucs", "_")
         labels[fov_si.c.isin(self.membrane_markers)] = "mems"
-        # return Image2DModel.parse()
-
-        return fov_si.groupby(labels, squeeze=False).sum().drop_sel({C: "_"})
+        return sd.models.Image2DModel.parse(
+            data=labels.groupby(labels, squeeze=False).sum(method="map-reduce", engine="flox").drop_sel({C: "_"}))
 
     async def _run_per_fov_deepcell(
         self,

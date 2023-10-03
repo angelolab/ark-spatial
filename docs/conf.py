@@ -110,6 +110,7 @@ intersphinx_mapping = {
     "xbatcher": ("https://xbatcher.readthedocs.io/en/latest/", None),
     "ray": ("https://docs.ray.io/en/latest/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
+    "httpx": ("https://www.python-httpx.org/", None)
 }
 
 # List of patterns, relative to source directory, that match files and
@@ -143,6 +144,7 @@ nitpick_ignore = [
     ("py:data", "collections.abc.Callable"),
     ("py:class", "Path"),
     ("py:class", "spatial_image.SpatialImage"),
+    ("py:class", "SpatialImage"),
     ("py:class", "optional"),
 ]
 

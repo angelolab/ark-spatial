@@ -48,7 +48,7 @@ async def _create_deepcell_input(
         temp_fov_dir = pathlib.Path(tmpdir) / fov.name
         temp_fov_dir.mkdir()
 
-        spaital_data_to_fov(fov, temp_fov_dir)
+        spatial_data_to_fov(fov, temp_fov_dir)
 
         zip_path = zip_input_files(temp_fov_dir)
 
@@ -119,7 +119,7 @@ def _deepcell_seg_to_spatial_labels(
     return SegmentationImageContainer(fov_name, renamed_seg_masks)
 
 
-def spaital_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
+def spatial_data_to_fov(fov: SpatialImage, save_dir: pathlib.Path):
     """Saves the SpatialImage object as a tiff file used for uploading to Deepcell.
 
     Parameters

@@ -64,7 +64,7 @@ def compute_region_props_df(
     intensity: ArrayLike | None = None,
     properties: list[str, ...] = REGIONPROPS_BASE,
     derived_properties: Mapping[str, ArrayLike] = {},
-    other_cols=None,
+    other_cols: Mapping[str, ArrayLike] = None,
 ) -> pd.DataFrame:
     """Computes the regionprops of each labelled region in a segmentation image.
 
@@ -83,7 +83,7 @@ def compute_region_props_df(
         an intensity image, corresponding weighted properties will also be computed by default, by default REGIONPROPS_BASE
     derived_properties : Mapping[str, ArrayLike], optional
         A list of custom region properties which are calculated from the original set of region properties, by default {}
-    other_cols : _type_, optional
+    other_cols : Mapping[str, ArrayLike], optional
         Other columns in the DataFrame, by default None
 
     Returns
@@ -206,7 +206,7 @@ def _get_meta(
 
     Parameters
     ----------
-    loop_size : dict[Hashable, list[int]
+    loop_sizes : dict[Hashable, list[int]
         The number of regions in the image.
     properties : list[str]
         The properties to compute for each region.
