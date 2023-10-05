@@ -97,8 +97,8 @@ source_suffix = {
 
 intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
-    "anndata": ("https://anndata.readthedocs.io/en/stable/", None),
     "numpy": ("https://numpy.org/doc/stable/", None),
+    "anndata": ("https://anndata.readthedocs.io/en/stable/", None),
     "spatialdata": ("https://spatialdata.scverse.org/en/latest/", None),
     "dask": ("https://docs.dask.org/en/stable/", None),
     "dask-image": ("https://image.dask.org/en/latest/", None),
@@ -110,7 +110,7 @@ intersphinx_mapping = {
     "xbatcher": ("https://xbatcher.readthedocs.io/en/latest/", None),
     "ray": ("https://docs.ray.io/en/latest/", None),
     "torch": ("https://pytorch.org/docs/stable/", None),
-    "httpx": ("https://www.python-httpx.org/", None)
+    "httpx": ("https://www.python-httpx.org/", None),
 }
 
 # List of patterns, relative to source directory, that match files and

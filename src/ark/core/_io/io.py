@@ -34,7 +34,7 @@ def load_cohort(
         Path to the directory containing the cohort.
     array_type : str, optional
         Array type to use for the image data, by default "numpy".
-        Options are "numpy" or "cupy" if cupy is installed.
+        Options are "numpy" or "cupy" if CuPy is installed.
 
     Returns
     -------

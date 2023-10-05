@@ -80,6 +80,5 @@
     _segmentation.utils.regionprops_extraction.num_concavities
     _segmentation.utils.regionprops_extraction._diff_img_concavities
     _segmentation.utils.regionprops_extraction.nc_ratio
-    _segmentation.utils.regionprops_extraction.REGIONPROPS_FUNCTIONS
 
 ```

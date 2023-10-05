@@ -38,7 +38,7 @@ core = [
     "mpire",
     "scipy",
     "scanpy",
-    "squidpy",
+    "squidpy @ git+https://github.com/scverse/squidpy.git",
     "dask",
     "cellpose[distributed]",
     "dask-image",
@@ -68,14 +68,15 @@ dev = [
 ]
 jax-cuda = [
     "jax[cuda12_pip]",
-
 ]
 jax-metal = [
     "ml-dtypes==0.2.0 ; platform_system == 'Darwin'",
     "jax-metal ; platform_system == 'Darwin'",
 ]
 
-napari = ["napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata"]
+napari = [
+    "napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata",
+]
 debug = ["session-info"]
 cuda-rapids = [
     "cupy-cuda12x",
@@ -91,6 +92,7 @@ cuda-rapids = [
     "rapids-singlecell[rapids]",
 ]
 nb = ["ipywidgets", "jupyterlab", "notebook"]
+globus = ["globus-sdk"]
 doc = [
     "docutils>=0.8,!=0.18.*,!=0.19.*",
     "sphinx>=4",

@@ -28,13 +28,13 @@ class SegmentationImageContainer:
 
 
 async def _create_deepcell_input(
-    fov: SpatialImage, dc_session: httpx.AsyncClient
+    fov_si: SpatialImage, dc_session: httpx.AsyncClient
 ) -> SegmentationImageContainer:
     """Runs the Deepcell to `SpatialData` label mask pipeline.
 
     Parameters
     ----------
-    fov : SpatialImage
+    fov_si : SpatialImage
         The `SpatialImage` object to generate nuclear and whole cell masks on.
     dc_session : httpx.AsyncClient
         The httpx session to use for the Deepcell API calls.
@@ -45,10 +45,10 @@ async def _create_deepcell_input(
         A container for the segmentation label masks.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
-        temp_fov_dir = pathlib.Path(tmpdir) / fov.name
+        temp_fov_dir = pathlib.Path(tmpdir) / fov_si.name
         temp_fov_dir.mkdir()
 
-        spatial_data_to_fov(fov, temp_fov_dir)
+        spatial_data_to_fov(fov_si, temp_fov_dir)
 
         zip_path = zip_input_files(temp_fov_dir)
 
@@ -59,10 +59,10 @@ async def _create_deepcell_input(
         extract_zip(output_zip_path, temp_extracted_seg_dir)
 
         seg_label_mask: SegmentationImageContainer = _deepcell_seg_to_spatial_labels(
-            fov_name=fov.name, extracted_seg_dir=temp_extracted_seg_dir
+            fov_name=fov_si.name, extracted_seg_dir=temp_extracted_seg_dir
         )
-        seg_label_mask.x_coords = fov.coords[X]
-        seg_label_mask.y_coords = fov.coords[Y]
+        seg_label_mask.x_coords = fov_si.coords[X]
+        seg_label_mask.y_coords = fov_si.coords[Y]
 
     return seg_label_mask
 

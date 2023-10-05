@@ -21,10 +21,9 @@ DEEPCELL_MAX_Y_PIXELS = 2048
 
 @register_spatial_data_accessor("segmentation")
 class SegmentationAccessor(SpatialDataAccessor):
-    _nuclear_markers: list[str] | None
-
     def __init__(self, sdata: sd.SpatialData):
         super().__init__(sdata)
+        self._membrane_markers = None
         self._nuclear_markers = None
 
     @property
@@ -154,10 +153,15 @@ class SegmentationAccessor(SpatialDataAccessor):
         """
         fov_si: si.SpatialImage = fov_sd.images[fov_name]
 
-        labels = xr.where(fov_si.c.isin(self.nuclear_markers), "nucs", "_")
+        labels: si.SpatialImage = xr.where(fov_si.c.isin(self.nuclear_markers), "nucs", "_")
         labels[fov_si.c.isin(self.membrane_markers)] = "mems"
-        return sd.models.Image2DModel.parse(
-            data=labels.groupby(labels, squeeze=False).sum(method="map-reduce", engine="flox").drop_sel({C: "_"}))
+        return (
+            fov_si.groupby(group=labels, squeeze=False)
+            .sum(
+                method="map-reduce",
+            )
+            .drop_sel({C: "_"})
+        )
 
     async def _run_per_fov_deepcell(
         self,
