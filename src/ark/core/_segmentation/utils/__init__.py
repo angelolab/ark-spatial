@@ -6,6 +6,7 @@ from .regionprops_extraction import (
     REGIONPROPS_MULTI_COMP,
     REGIONPROPS_SINGLE_COMP,
     regionprops,
+    ufunc_regionprops
 )
 
 __all__: list[str] = [
@@ -17,4 +18,5 @@ __all__: list[str] = [
     "REGIONPROPS_SINGLE_COMP",
     "REGIONPROPS_MULTI_COMP",
     "DEFAULT_REGIONPROPS",
+    "ufunc_regionprops"
 ]

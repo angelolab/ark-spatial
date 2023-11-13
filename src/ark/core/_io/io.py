@@ -14,6 +14,10 @@ from spatialdata.models import (
     Y,
 )
 from spatialdata.transformations import Identity
+from dask import delayed
+from dask.distributed import get_client, as_completed
+from functools import partial
+from tqdm.auto import tqdm
 
 
 @dataclass
@@ -24,6 +28,7 @@ class _fov:
 
 def load_cohort(
     cohort_dir: Path,
+    save_dir: Path,
     array_type: str = "numpy",
 ) -> sd.SpatialData:
     """Load a cohort of images into a SpatialData object.
@@ -41,29 +46,29 @@ def load_cohort(
     sd.SpatialData
         sd.SpatialData object containing the cohort.
     """
-    fovs: list[Path] = list(cohort_dir.glob("*/"))
+    client = get_client()
+
+    fovs: list[Path] = list(cohort_dir.glob("[!.]*/"))
 
     spatial_data = sd.SpatialData()
-    with WorkerPool(n_jobs=None, shared_objects=array_type) as pool:
-        for fov in pool.imap(
-            func=convert_fov,
-            iterable_of_args=fovs,
-            progress_bar=True,
-            progress_bar_style=None,
-            progress_bar_options={"unit": "FOV"},
-        ):
-            spatial_data.add_image(name=fov.name, image=fov.image)
+
+    spatial_data.write(save_dir)
+
+    futures = client.map(lambda fov: partial(convert_fov, array_type=array_type)(fov), fovs)
+
+    for future, result in tqdm(as_completed(futures, with_results=True), total=len(fovs)):
+        spatial_data.add_image(name=result.name, image=result.image)
 
     return spatial_data
 
 
-def convert_fov(shared_objects: str, fov: Path) -> _fov:
+def convert_fov(fov: Path, array_type: Path) -> _fov:
     """
     Convert a single FOV into a SpatialImage.
 
     Parameters
     ----------
-    shared_objects : str
+    array_type : str
         The array type to use for the image data. Options are "numpy" or "cupy" if cupy is installed.
     fov : Path
         The path to the FOV
@@ -73,7 +78,6 @@ def convert_fov(shared_objects: str, fov: Path) -> _fov:
     _fov
         A dataclass containing the FOV name and SpatialImage.
     """
-    array_type: str = shared_objects
     data: da.Array = imread(fname=f"{fov.as_posix()}/*.tiff", arraytype=array_type)
     channels: list[str] = ns.natsorted([f.stem for f in fov.glob("*.tiff")])
     fov_si: SpatialImage = Image2DModel().parse(

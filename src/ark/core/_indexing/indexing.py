@@ -1,5 +1,4 @@
 from collections import OrderedDict
-from collections.abc import Generator
 from typing import Any
 
 import natsort as ns
@@ -9,11 +8,17 @@ from ark.core._accessors import (
     SpatialDataAccessor,
     register_spatial_data_accessor,
 )
-
+import more_itertools as mi
 from .utils import (
     _get_coordinate_system_mapping,
     _get_region_key,
 )
+from torchdata.datapipes.iter import IterableWrapper, IterDataPipe
+
+try:
+    from typing import TypedDict
+except ImportError:
+    from typing_extensions import TypedDict
 
 
 @register_spatial_data_accessor("sel")
@@ -240,9 +245,13 @@ class IndexingAccessor(SpatialDataAccessor):
         return sdata
 
 
+class IterableWrapperKwargs(TypedDict):
+    deepcopy: bool = False
+
+
 @register_spatial_data_accessor("iter_coords")
 class IteratorAccessor(SpatialDataAccessor):
-    """An accessor used for iterating over coordinates in a `SpatialData` object sorted by natsort.
+    """An accessor used for iterating over coordinates in a `SpatialData` object. Sorted by natsort.
 
     Excludes the "global" coordinate system.
 
@@ -263,22 +272,6 @@ class IteratorAccessor(SpatialDataAccessor):
         fovs: list[str] = ns.natsorted(all_coords)
         return fovs
 
-    def __len__(self) -> int:
-        return len(self.fovs)
+    def __call__(self, **iterable_wrapper_kwargs) -> IterDataPipe[tuple[str, sd.SpatialData]]:
+        return IterableWrapper([(fov, self.sdata.sel(fov)) for fov in self.fovs], **iterable_wrapper_kwargs)
 
-    #  TODO: implement filtering by regex
-    # def __call__(self, fovs: re.Pattern[str] | str | list[str] = None, filter_table: bool = True, include_global: bool = False) -> Generator[tuple[str, sd.SpatialData]]:
-    #     if isinstance(fovs, (str, re.Pattern)) and fovs not in self.fovs:
-    #         try:
-    #             fovs = re.compile(fovs)
-    #
-    #         except re.error as e:
-    #             raise e(msg = f"Invalid regular expression {fovs}")
-    #
-    #     match fovs:
-    #         case None:
-    #             coords = self.fovs
-
-    def __iter__(self) -> Generator[tuple[str, sd.SpatialData]]:
-        for fov in self.fovs:
-            yield fov, self.sdata.sel(fov)

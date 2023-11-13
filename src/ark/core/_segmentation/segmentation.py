@@ -4,7 +4,7 @@ import httpx
 import spatial_image as si
 import spatialdata as sd
 import xarray as xr
-from anyio import start_blocking_portal
+from anyio.from_thread import start_blocking_portal
 from spatialdata.models import C, Labels2DModel, X, Y
 from spatialdata.transformations import Identity
 from tqdm.auto import tqdm
@@ -121,10 +121,10 @@ class SegmentationAccessor(SpatialDataAccessor):
 
         with start_blocking_portal() as portal:
             futures = [
-                portal.start_task_soon(self._run_per_fov_deepcell, fov_name, fov_sd)
-                for fov_name, fov_sd in self.sdata.iter_coords
+                portal.start_task_soon(self._run_per_fov_deepcell, fov_id, fov_sd)
+                for fov_id, fov_sd in self.sdata.iter_coords()
             ]
-            for future in as_completed(futures):
+            for future in tqdm(as_completed(futures)):
                 sic: SegmentationImageContainer = future.result()
                 for seg_type, seg_label in sic.segmentation_label_masks.items():
                     try:
@@ -216,7 +216,7 @@ class SegmentationAccessor(SpatialDataAccessor):
 
         self._set_markers(nucs, mems)
 
-        for fov_name, fov_sd in tqdm(self.sdata.iter_coords):
+        for fov_name, fov_sd in tqdm(self.sdata.iter_coords()):
             fov_si: si.SpatialImage = self._sum_markers(fov_name, fov_sd)
             mask, _ = cyto2_model.eval(
                 x=fov_si.data,

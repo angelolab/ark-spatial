@@ -5,12 +5,10 @@ From https://github.com/jrussell25/dask-regionprops/blob/main/dask_regionprops/r
 Modified to accept other properties.
 """
 
-
 import inspect
 import re
 from collections.abc import Callable, Hashable, Mapping
 from itertools import product
-
 import dask.dataframe as dd
 import numpy as np
 import pandas as pd
@@ -19,6 +17,7 @@ from dask import delayed
 from numpy.typing import ArrayLike
 from skimage.measure import label, moments, regionprops_table
 from spatial_image import SpatialImage
+from spatialdata.models import X, Y
 
 REGIONPROPS_BASE: list[str] = [
     "label",
@@ -37,7 +36,6 @@ REGIONPROPS_BASE_TEMPORARY: list[str] = [
     "image_convex",
 ]
 
-
 REGIONPROPS_SINGLE_COMP: list[str] = [
     "major_minor_axis_ratio",
     "perim_square_over_area",
@@ -47,15 +45,51 @@ REGIONPROPS_SINGLE_COMP: list[str] = [
     "num_concavities",
 ]
 
-
 REGIONPROPS_MULTI_COMP: list[str] = ["nc_ratio"]
-
 
 DEFAULT_REGIONPROPS: list[str] = [
     *REGIONPROPS_BASE,
     *REGIONPROPS_SINGLE_COMP
     # *REGIONPROPS_MULTI_COMP,
 ]
+
+REGIONPROPS_NAMES = [
+    "instance_id",
+    "area",
+    "area_convex",
+    f"{X}_centroid",
+    f"{Y}_centroid",
+    "eccentricity",
+    "equivalent_diameter",
+    "axis_minor_length",
+    "axis_major_length",
+    "perimeter",
+    *REGIONPROPS_SINGLE_COMP,
+]
+
+
+def ufunc_regionprops(
+    labels: SpatialImage, dim: list[str], derived_props: list[str] = REGIONPROPS_SINGLE_COMP
+) -> dd.DataFrame:
+    rp_df: dd.DataFrame = (
+        xr.apply_ufunc(
+            regionprops,
+            labels,
+            vectorize=True,
+            input_core_dims=[dim],
+            output_core_dims=[["label", "properties"]],
+            kwargs={"intensity": None, "derived_properties": derived_props},
+            dask="allowed",
+        )
+        .to_pandas()
+        .reset_index(drop=True, inplace=False)
+        .rename(
+            columns={i: rp_name for i, rp_name in enumerate([*REGIONPROPS_NAMES])}, inplace=False
+        )
+        .astype({"instance_id": int, "num_concavities": int})
+    )
+    rp_df.index = rp_df.index.astype("str")
+    return rp_df
 
 
 @delayed
@@ -102,7 +136,7 @@ def compute_region_props_df(
         rp_table[prop] = np.array(REGIONPROPS_FUNCTIONS[prop](rp_table))
 
     # Drop "image_convex" and "image"
-    for prop in ["image_convex", "image"]:
+    for prop in REGIONPROPS_BASE_TEMPORARY:
         if prop in rp_table:
             rp_table.pop(prop)
 
@@ -147,7 +181,6 @@ def regionprops(
         Lazily constructed dataframe containing columns for each specified
         property.
     """
-    # d_regionprops = delayed(regionprops_df)
 
     loop_sizes = _get_loop_sizes(labels, core_dims)
 
@@ -163,11 +196,11 @@ def regionprops(
 
         if intensity is not None:
             frame_props = compute_region_props_df(
-                labels.data[dims], intensity.data[dims], properties, derived_properties, other_cols
+                labels[dims], intensity[dims], properties, derived_properties, other_cols
             )
         else:
             frame_props = compute_region_props_df(
-                labels.data[dims], None, properties, derived_properties, other_cols
+                labels[dims], None, properties, derived_properties, other_cols
             )
 
         all_props.append(frame_props)
@@ -186,7 +219,6 @@ DEFAULT_META = pd.DataFrame(
         properties=REGIONPROPS_BASE,
     )
 )
-
 
 DEFAULT_PROPS_TO_COLS = {}
 

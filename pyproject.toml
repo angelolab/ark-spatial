@@ -35,62 +35,51 @@ dependencies = ["ark[core]"]
 core = [
     "anndata",
     "numpy",
-    "mpire",
     "scipy",
     "scanpy",
     "squidpy @ git+https://github.com/scverse/squidpy.git",
     "dask",
-    "cellpose[distributed]",
     "dask-image",
+    "cellpose[distributed]",
     "scikit-image",
     "flox",
     "spatialdata",
     "spatialdata-plot",
     "xbatcher",
-    "ray[serve]",
     "torch",
+    "torchdata",
     "tqdm",
     "httpx",
     "anyio",
     "rich",
+    "Cython",
+    "PCAfold @ git+https://gitlab.multiscale.utah.edu/common/PCAfold.git",
+    "more-itertools"
 ]
-torch-extensions = ["captum", "torch_geometric"]
 dev = [
     # CLI for bumping the version number
     "pre-commit",
     "twine>=4.0.2",
     "ark[core]",
+    "ark[torch-extensions]",
+    "ark[jax]",
     "ark[nb]",
     "ark[napari]",
     "ark[debug]",
     "ark[test]",
     "ark[doc]",
 ]
-jax-cuda = [
-    "jax[cuda12_pip]",
-]
-jax-metal = [
-    "ml-dtypes==0.2.0 ; platform_system == 'Darwin'",
+torch-extensions = ["captum", "lightning"]
+jax = [
     "jax-metal ; platform_system == 'Darwin'",
+    "jax[cuda12_pip] ; platform_system == 'Linux'",
+    "jaxtyping"
 ]
 
 napari = [
     "napari-spatialdata @ git+https://github.com/scverse/napari-spatialdata",
 ]
-debug = ["session-info"]
-cuda-rapids = [
-    "cupy-cuda12x",
-    "cudf-cu12",
-    "dask-cudf-cu12",
-    "cuml-cu12",
-    "cugraph-cu12",
-    "cuspatial-cu12",
-    "cuproj-cu12",
-    "cuxfilter-cu12",
-    "cucim",
-    "optuna",
-    "rapids-singlecell[rapids]",
-]
+debug = ["session-info", "py-spy"]
 nb = ["ipywidgets", "jupyterlab", "notebook"]
 globus = ["globus-sdk"]
 doc = [
@@ -108,9 +97,6 @@ doc = [
     "sphinx-copybutton",
 ]
 test = ["pytest", "pytest-cov"]
-
-[project.scripts]
-# cupyx.tools.install_library --cuda 12.x --library cutensor
 
 [tool.hatch]
 metadata.allow-direct-references = true
