@@ -1,0 +1,10 @@
+diff a/README.md b/README.md	(rejected hunks)
+@@ -33,7 +33,7 @@ pip install ark-spatial
+ 1. Install the latest development version:
+ 
+ ```bash
+-pip install git+https://github.com/srivarra/ark-spatial.git@main
++pip install git+ark-spatial.git@main
+ ```
+ 
+ ## Release notes
