@@ -1,6 +1,6 @@
 [build-system]
 build-backend = "hatchling.build"
-requires = ["hatchling", "hatch-vcs"]
+requires = ["hatchling", "hatch-vcs", "Cython"]
 
 [project]
 name = "ark"
@@ -38,7 +38,7 @@ core = [
     "scipy",
     "scanpy",
     "squidpy @ git+https://github.com/scverse/squidpy.git",
-    "dask",
+    "dask[complete]",
     "dask-image",
     "cellpose[distributed]",
     "scikit-image",
@@ -52,7 +52,6 @@ core = [
     "httpx",
     "anyio",
     "rich",
-    "Cython",
     "PCAfold @ git+https://gitlab.multiscale.utah.edu/common/PCAfold.git",
     "more-itertools"
 ]
@@ -71,9 +70,10 @@ dev = [
 ]
 torch-extensions = ["captum", "lightning"]
 jax = [
-    "jax-metal ; platform_system == 'Darwin'",
+    "jax[cpu] ; platform_system == 'Darwin'",
     "jax[cuda12_pip] ; platform_system == 'Linux'",
-    "jaxtyping"
+    "jaxtyping",
+    "equinox",
 ]
 
 napari = [

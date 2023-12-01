@@ -3,17 +3,18 @@ from typing import Any
 
 import natsort as ns
 import spatialdata as sd
+from torchdata.dataloader2 import DataLoader2
+from torchdata.datapipes.iter import IterableWrapper, IterDataPipe
 
 from ark.core._accessors import (
     SpatialDataAccessor,
     register_spatial_data_accessor,
 )
-import more_itertools as mi
+
 from .utils import (
     _get_coordinate_system_mapping,
     _get_region_key,
 )
-from torchdata.datapipes.iter import IterableWrapper, IterDataPipe
 
 try:
     from typing import TypedDict
@@ -119,7 +120,7 @@ class IndexingAccessor(SpatialDataAccessor):
             list(self._sdata.points.keys()) if hasattr(self._sdata, "points") else None
         )
 
-        # first, extract coordinate system keys becasuse they generate implicit keys
+        # first, extract coordinate system keys because they generate implicit keys
         mapping = _get_coordinate_system_mapping(self._sdata)
         implicit_keys = []
         for e in elements:
@@ -246,7 +247,7 @@ class IndexingAccessor(SpatialDataAccessor):
 
 
 class IterableWrapperKwargs(TypedDict):
-    deepcopy: bool = False
+    deepcopy: bool
 
 
 @register_spatial_data_accessor("iter_coords")
@@ -272,6 +273,13 @@ class IteratorAccessor(SpatialDataAccessor):
         fovs: list[str] = ns.natsorted(all_coords)
         return fovs
 
-    def __call__(self, **iterable_wrapper_kwargs) -> IterDataPipe[tuple[str, sd.SpatialData]]:
-        return IterableWrapper([(fov, self.sdata.sel(fov)) for fov in self.fovs], **iterable_wrapper_kwargs)
-
+    def __call__(
+        self, dataloader: bool, **iterable_wrapper_kwargs
+    ) -> IterDataPipe[tuple[str, sd.SpatialData]] | DataLoader2[tuple[str, sd.SpatialData]]:
+        iw = IterableWrapper(
+            [(fov, self.sdata.sel(fov)) for fov in self.fovs], **iterable_wrapper_kwargs
+        )
+        if dataloader:
+            return DataLoader2(iw)
+        else:
+            return iw
