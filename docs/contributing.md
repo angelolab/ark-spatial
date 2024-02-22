@@ -1,6 +1,6 @@
 # Contributing guide
 
-Scanpy provides extensive [developer documentation][scanpy developer guide], most of which applies to this repo, too.
+Scanpy provides extensive [developer documentation][scanpy developer guide], most of which applies to this project, too.
 This document will not reproduce the entire content from there. Instead, it aims at summarizing the most important
 information to get you started on contributing.
 
@@ -19,9 +19,8 @@ pip install -e ".[dev]"
 
 ## Code-style
 
-This template uses [pre-commit][] to enforce consistent code-styles. On every commit, pre-commit checks will either
-automatically fix issues with the code, or raise an error message. See [pre-commit checks](template_usage.md#pre-commit-checks) for
-a full list of checks enabled for this repository.
+This package uses [pre-commit][] to enforce consistent code-styles.
+On every commit, pre-commit checks will either automatically fix issues with the code, or raise an error message.
 
 To enable pre-commit locally, simply run
 
@@ -43,10 +42,10 @@ git pull --rebase
 to integrate the changes into yours.
 While the [pre-commit.ci][] is useful, we strongly encourage installing and running pre-commit locally first to understand its usage.
 
-Finally, most editors have an _autoformat on save_ feature. Consider enabling this option for [black][black-editors]
+Finally, most editors have an _autoformat on save_ feature. Consider enabling this option for [ruff][ruff-editors]
 and [prettier][prettier-editors].
 
-[black-editors]: https://black.readthedocs.io/en/stable/integrations/editors.html
+[ruff-editors]: https://docs.astral.sh/ruff/integrations/
 [prettier-editors]: https://prettier.io/docs/en/editors.html
 
 ## Writing tests
@@ -65,7 +64,17 @@ command line by executing
 pytest
 ```
 
-in the root of the repository. Continuous integration will automatically run the tests on all pull requests.
+in the root of the repository.
+
+### Continuous integration
+
+Continuous integration will automatically run the tests on all pull requests and test
+against the minimum and maximum supported Python version.
+
+Additionally, there's a CI job that tests against pre-releases of all dependencies
+(if there are any). The purpose of this check is to detect incompatibilities
+of new package versions early on and gives you time to fix the issue or reach
+out to the developers of the dependency before the package is released to a wider audience.
 
 [scanpy-test-docs]: https://scanpy.readthedocs.io/en/latest/dev/testing.html#writing-tests
 
@@ -211,3 +220,4 @@ This should spin up a local server. Open the link in your browser.
 [numpydoc]: https://numpydoc.readthedocs.io/en/latest/format.html
 [sphinx autodoc typehints]: https://github.com/tox-dev/sphinx-autodoc-typehints
 [pypi]: https://pypi.org/
+[managing GitHub releases]: https://docs.github.com/en/repositories/releasing-projects-on-github/managing-releases-in-a-repository
